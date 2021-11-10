@@ -1,7 +1,35 @@
 # niall
 
-notes on interaction and use of parallel cluster
+notes on interaction with parallel cluster and usage with HPC for the ANTsX ecosystem
 
+## how to read this repository
+
+in the `src` directory, we put the organizing scripts for the calls to
+each sub-process for each modality.  it's not fully generalized but provides a
+framework that should allow minimal modifications for other projects.
+
+in each `src/modality` directory, we have something like this:
+
+* an overall call to `sbatch` typically prefixed by `00`
+
+* a call to a subscript that passes the index to the sub-process, typically prefixed by `01`
+
+* the actual processing script typically prefixed by `02`
+
+this is fairly general for applications that are deployed on a HPC system.
+
+the `02` script will need the most modification for each process taking care of:
+
+* the nature/directory structure of the input
+
+* the nature/directory structure of the output
+
+* the specific tasks that need to be run
+
+* across `00` `01` and `02`, the threads/tasks should be coordinated (if you
+  care about efficient compute usage).
+
+Please open issues in the repository for any questions.
 
 ## environment variables
 
@@ -101,3 +129,15 @@ rsync -av --progress -e 'ssh -i pathto.pem' ubuntu@00.00.00.00:/tmp/z*nii.gz /tm
 ```
 
 note: replace the 00.00.00.00 with the real IP address. same for the pem file.
+
+
+## things having to do with `R` and `C++`
+
+* cmake
+
+```sh
+sudo apt remove --purge cmake
+sudo snap install cmake --classic
+```
+
+* R (updated version) [https://cran.rstudio.com/bin/linux/ubuntu/](https://cran.rstudio.com/bin/linux/ubuntu/)
