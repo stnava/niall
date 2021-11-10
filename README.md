@@ -87,3 +87,17 @@ see the `src` directory for an example run (not a fast one).
 
 there is a way to do it with rsync and ssh with a .pem file and
 knowing the public ip address of the head node.   FIXME.
+
+get the public ip addresss
+
+```sh
+pcluster describe-cluster --cluster-name bba
+```
+
+now you can rsync
+
+```sh
+rsync -av --progress -e 'ssh -i pathto.pem' ubuntu@00.00.00.00:/tmp/z*nii.gz /tmp
+```
+
+note: replace the 00.00.00.00 with the real IP address. same for the pem file.
