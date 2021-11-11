@@ -65,10 +65,6 @@ ants.image_write( t1h['medial_temporal_lobe'][ 'mtl_segmentation' ],
     newprefix + "mtl.nii.gz" )
 (mtldf).to_csv( newprefix + "mtl.csv" )
 (t1h['rbp']).to_csv( newprefix + "rbp.csv" )
-# hierarchical(x, output_prefix, labels_to_register=[2, 3, 4, 5], is_test=False, verbose=True)
-#    Default processing for a T1-weighted image.  See README.
-#
-#  'dataframes'])
 myvarlist = [
     'brain_n4_dnz',
     'brain_extraction',
