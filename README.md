@@ -29,6 +29,10 @@ the `02` script will need the most modification for each process taking care of:
 * across `00` `01` and `02`, the threads/tasks should be coordinated (if you
   care about efficient compute usage).
 
+* the `02` script should be run either in an interactive session (on a node)
+before being deployed at scale through `sbatch`.  this is to make sure it's
+actually working before running lots of computation through.
+
 Please open issues in the repository for any questions.
 
 ## environment variables
