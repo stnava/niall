@@ -86,7 +86,7 @@ dwp = antspymm.dewarp_imageset( [img1,img2], iterations=2, padding=6,
 import pandas as pd
 outfn1 = newprefixList[0] + 'SRRGB.nii.gz'
 if not exists( outfn1 ):
-    print("Begin Recon 1")
+    print("Begin Recon 1: " + outfn1 )
     bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn )
     bval = re.sub( "-SR.nii.gz", ".bval", targetfn )
     dd = antspymm.dipy_dti_recon( dwp['dewarped'][0], bval, bvec, median_radius=8, dilate=1 )
@@ -96,7 +96,7 @@ if not exists( outfn1 ):
 
 outfn1 = newprefixList[1] + 'SRRGB.nii.gz'
 if not exists( outfn1 ):
-    print("Begin Recon 2")
+    print("Begin Recon 2: " + outfn1 )
     bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn2 )
     bval = re.sub( "-SR.nii.gz", ".bval", targetfn2 )
     ee = antspymm.dipy_dti_recon( dwp['dewarped'][1], bval, bvec, median_radius=8, dilate=1 )
