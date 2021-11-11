@@ -35,7 +35,7 @@ myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
 
 if not myx:
-    os.mkdir( newoutdir )
+    os.makedirs( newoutdir )
 
 print( "made " +  newoutdir + " successfully " )
 outfn = newprefix + "hippR" + '.nii.gz'
