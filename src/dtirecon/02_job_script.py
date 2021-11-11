@@ -83,12 +83,14 @@ dwp = antspymm.dewarp_imageset( [img1,img2], iterations=2, padding=6,
 # ants.image_write( dwp['dewarped'][1], newprefixList[1] + 'SRdewarped.nii.gz' )
 
 # now reconstruct DTI
+import pandas as pd
 print("Begin Recon 1")
 bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn )
 bval = re.sub( "-SR.nii.gz", ".bval", targetfn )
 dd = antspymm.dipy_dti_recon( dwp['dewarped'][0], bval, bvec )
 for mykey in ['MD','FA','RGB']:
     ants.image_write( dd[mykey],  newprefixList[0] + 'SR' + mykey + '.nii.gz' )
+pd.DataFrame(data=dwp['FD'][0],columns=['FD'] ).to_csv(  newprefixList[0] + 'SR' + 'FD.csv')
 
 print("Begin Recon 2")
 bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn2 )
@@ -96,6 +98,7 @@ bval = re.sub( "-SR.nii.gz", ".bval", targetfn2 )
 dd = antspymm.dipy_dti_recon( dwp['dewarped'][1], bval, bvec )
 for mykey in ['MD','FA','RGB']:
     ants.image_write( dd[mykey],  newprefixList[1] + 'SR' + mykey + '.nii.gz' )
-print("complete: " + newprefixList[0] + " & " + newprefixList[2] )
+pd.DataFrame(data=dwp['FD'][1],columns=['FD'] ).to_csv(  newprefixList[1] + 'SR' + 'FD.csv')
 
-# FIXME - write out the FD data
+
+print("complete: " + newprefixList[0] + " & " + newprefixList[2] )
