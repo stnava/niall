@@ -6,10 +6,10 @@ os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 from os.path import exists
 import glob
 rootdir = "/mnt/cluster/data/PPMI2/PPMI/"
-if not exists( rootdir )
+if not exists( rootdir ):
     rootdir = "/Users/stnava/data/PPMI2/"
     print("rootdir " + rootdir )
-    
+
 t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
 import sys
 fileindex = 0 # int(sys.argv[1])
@@ -38,8 +38,8 @@ import ants
 import antspymm
 import tensorflow as tf
 import antspyt1w
-mdlfn = antspymm.get_data( "brainSR", target_extension=".h5")
-mdl = tf.keras.models.load_model( mdlfn )
+# mdlfn = antspymm.get_data( "brainSR", target_extension=".h5")
+# mdl = tf.keras.models.load_model( mdlfn )
 t1 = ants.image_read( t1fn )
 print("begin: " + newprefix )
 t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix )
