@@ -10,9 +10,11 @@ if not exists( rootdir ):
     rootdir = "/Users/stnava/data/PPMI2/"
     print("rootdir " + rootdir )
 
-t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
+t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
 import sys
-fileindex = 0 # int(sys.argv[1])
+fileindex = 0
+if len( sys.argv ) > 1:
+    fileindex = int(sys.argv[1])
 t1fn = t1fns[ fileindex ]
 import re
 outfn = re.sub('V0.nii.gz', 'V0-SR.nii.gz', t1fn )
