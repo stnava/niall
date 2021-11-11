@@ -1,5 +1,7 @@
 # niall
 
+for processing all neuroimages in parallel computing environments
+
 notes on interaction with parallel cluster and usage with HPC for the ANTsX ecosystem
 
 ## how to read this repository
