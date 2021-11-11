@@ -33,7 +33,6 @@ newprefix = newoutdir + '/' + newprefix + mysubbedsplit[keyindex] + '-'
 # create the directory
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
-sys.exit()
 
 if not myx:
     os.mkdir( newoutdir )
