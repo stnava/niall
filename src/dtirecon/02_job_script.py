@@ -14,6 +14,8 @@ modality = "DTI_LR"
 modality2 = "DTI_RL"
 targetfns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*" +
     modality + "*dcm2niix-V0-SR.nii.gz" )
+targetfns2 = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*" +
+    modality2 + "*dcm2niix-V0-SR.nii.gz" )
 if len(targetfns) == 0:
     targetfns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*" +
     modality + "*dcm2niix-V0-SR.nii.gz" )
@@ -50,7 +52,7 @@ for newout in [mysubbed, mysubbed2]:
     myx = os.path.isdir( newoutdir )
     print( "make " +  newoutdir + " " + str( myx ) )
     if not myx:
-        os.makedirs( newoutdir )
+        os.makedirs( newoutdir, exist_ok=True )
     print( "made " +  newoutdir + " successfully " )
     newprefixList.append( newprefix )
     newoutdirList.append( newoutdir )
@@ -85,12 +87,14 @@ bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn )
 bval = re.sub( "-SR.nii.gz", ".bval", targetfn )
 dd = antspymm.dipy_dti_recon( dwp['dewarped'][0], bval, bvec )
 for mykey in ['MD','FA','RGB']:
-    ants.image_write( dd[mykey],  newprefixList[0] + 'SR' + mykey, '.nii.gz' )
+    ants.image_write( dd[mykey],  newprefixList[0] + 'SR' + mykey + '.nii.gz' )
 
 print("Begin Recon 2")
 bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn2 )
 bval = re.sub( "-SR.nii.gz", ".bval", targetfn2 )
 dd = antspymm.dipy_dti_recon( dwp['dewarped'][1], bval, bvec )
 for mykey in ['MD','FA','RGB']:
-    ants.image_write( dd[mykey],  newprefixList[1] + 'SR' + mykey, '.nii.gz' )
+    ants.image_write( dd[mykey],  newprefixList[1] + 'SR' + mykey + '.nii.gz' )
 print("complete: " + newprefixList[0] + " & " + newprefixList[2] )
+
+# FIXME - write out the FD data

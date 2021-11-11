@@ -40,7 +40,7 @@ newprefix = newoutdir + '/' + newprefix
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
 if not myx:
-    os.makedirs( newoutdir )
+    os.makedirs( newoutdir, exist_ok=True  )
 
 print( "made " +  newoutdir + " successfully " )
 outfn = newprefix + newmod + '.nii.gz'
@@ -62,6 +62,5 @@ print("complete: " + newprefix )
 
 # write stuff out - this is just an example that needs to be changed
 # for a specific modality
-ants.image_write( flairoutputimage, outfn ) 
+ants.image_write( flairoutputimage, outfn )
 (flairdf).to_csv( newprefix + newmod + ".csv" )
-
