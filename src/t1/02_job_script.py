@@ -14,7 +14,7 @@ t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
 if len(t1fns) == 0:
     t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
 import sys
-fileindex = 55
+fileindex = 0
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 t1fn = t1fns[ fileindex ]
@@ -29,7 +29,7 @@ for k in range(keyindex):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
     if k > 5:
         newprefix = newprefix + mysubbedsplit[k] + '-'
-newprefix = newoutdir + '/' + newprefix + mysubbedsplit[keyindex] + '-'
+# newprefix = newoutdir + '/' + newprefix + mysubbedsplit[keyindex] + '-'
 # create the directory
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
