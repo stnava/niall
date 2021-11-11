@@ -20,10 +20,13 @@ fileindex = 0
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 targetfn = targetfns[ fileindex ]
+print( targetfn )
 import re
 # FIXME - more specific stuff below for this modality
-mysubbed = re.sub('T1w', 'T1wHierarchical', targetfn )
+newmod='FlairWMH'
+mysubbed = re.sub( modality, newmod, targetfn )
 mysubbedsplit = mysubbed.split("/")
+derka
 # define the directories and create them
 newoutdir = ''
 newprefix = ''
@@ -36,18 +39,18 @@ newprefix = newoutdir + '/' + newprefix
 # create the directory
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
-
 if not myx:
-    os.mkdir( newoutdir )
+    os.makedirs( newoutdir )
 
 print( "made " +  newoutdir + " successfully " )
-outfn = newprefix + "hippR" + '.nii.gz'
+outfn = newprefix + newmod + '.nii.gz'
 myoutfnexists = exists( outfn )
 if myoutfnexists:
     print( outfn + "exists already" )
     sys.exit()
 
-print( "continue " +  outfn + " run " )
+print( "continue to computation of: " +  outfn + " run " )
+
 import ants
 import antspymm
 import tensorflow as tf
@@ -59,11 +62,6 @@ print("complete: " + newprefix )
 
 # write stuff out - this is just an example that needs to be changed
 # for a specific modality
-mtlfn = os.path.expanduser( "~/.antspyt1w/mtl_description.csv" )
-if not exists( mtlfn ):
-    t1h['medial_temporal_lobe'][ 'mtl_description'].to_csv( mtlfn )
-mtldf = antspyt1w.map_segmentation_to_dataframe(
-    'mtl_description', t1h['medial_temporal_lobe'][ 'mtl_segmentation' ] )
-ants.image_write( t1h['medial_temporal_lobe'][ 'mtl_segmentation' ],
-    newprefix + "mtl.nii.gz" )
-(mtldf).to_csv( newprefix + "mtl.csv" )
+ants.image_write( flairoutputimage, outfn ) 
+(flairdf).to_csv( newprefix + newmod + ".csv" )
+
