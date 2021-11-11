@@ -29,7 +29,7 @@ for k in range(keyindex):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
     if k > 5:
         newprefix = newprefix + mysubbedsplit[k] + '-'
-# newprefix = newoutdir + '/' + newprefix + mysubbedsplit[keyindex] + '-'
+newprefix = newoutdir + '/' + newprefix
 # create the directory
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
