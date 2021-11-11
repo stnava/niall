@@ -24,7 +24,7 @@ mysubbedsplit = mysubbed.split("/")
 # define the directories and create them
 newoutdir = ''
 newprefix = ''
-keyindex = 9 # change for each case
+keyindex = 10 # change for each case
 for k in range(keyindex):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
     if k > 5:
