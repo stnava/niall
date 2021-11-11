@@ -31,8 +31,9 @@ for k in range(keyindex):
         newprefix = newprefix + mysubbedsplit[k] + '-'
 newprefix = newoutdir + '/' + newprefix + mysubbedsplit[keyindex] + '-'
 # create the directory
-
-if not exists( newoutdir ):
+myx = os.path.isdir( newoutdir )
+print( "make " +  newoutdir + " " + str( myx ) )
+if not myx:
     os.mkdir( newoutdir )
 
 outfn = newprefix + "hippR" + '.nii.gz'
