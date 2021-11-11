@@ -11,13 +11,14 @@ if not exists( rootdir ):
     print("rootdir " + rootdir )
 
 t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
+if len(t1fns) == 0:
+    t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
 import sys
 fileindex = 0
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 t1fn = t1fns[ fileindex ]
 import re
-outfn = re.sub('V0.nii.gz', 'V0-SR.nii.gz', t1fn )
 mysubbed = re.sub('T1w', 'T1wHierarchical', t1fn )
 mysubbedsplit = mysubbed.split("/")
 # define the directories and create them
@@ -30,12 +31,16 @@ for k in range(keyindex):
         newprefix = newprefix + mysubbedsplit[k] + '-'
 newprefix = newoutdir + '/' + newprefix + mysubbedsplit[keyindex] + '-'
 # create the directory
+
 if not exists( newoutdir ):
     os.mkdir( newoutdir )
+
+outfn = newprefix + "hippR" + '.nii.gz'
 myoutfnexists = exists( outfn )
 if myoutfnexists:
     print( outfn + "exists already" )
     sys.exit()
+
 import ants
 import antspymm
 import tensorflow as tf
@@ -46,6 +51,41 @@ t1 = ants.image_read( t1fn )
 print("begin: " + newprefix )
 t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix )
 print("complete: " + newprefix )
+
+# write extant dataframes
+for myvar in t1h['dataframes'].keys():
+    t1h['dataframes'][myvar].to_csv(newprefix + myvar + ".csv")
+
+mtlfn = os.path.expanduser( "~/.antspyt1w/mtl_description.csv" )
+if not exists( mtlfn ):
+    t1h['medial_temporal_lobe'][ 'mtl_description'].to_csv( mtlfn )
+mtldf = antspyt1w.map_segmentation_to_dataframe(
+    'mtl_description', t1h['medial_temporal_lobe'][ 'mtl_segmentation' ] )
+ants.image_write( t1h['medial_temporal_lobe'][ 'mtl_segmentation' ],
+    newprefix + "mtl.nii.gz" )
+(mtldf).to_csv( newprefix + "mtl.csv" )
+(t1h['rbp']).to_csv( newprefix + "rbp.csv" )
 # hierarchical(x, output_prefix, labels_to_register=[2, 3, 4, 5], is_test=False, verbose=True)
 #    Default processing for a T1-weighted image.  See README.
-# map_segmentation_to_dataframe(segmentation_type, segmentation_image)
+#
+#  'dataframes'])
+myvarlist = [
+    'brain_n4_dnz',
+    'brain_extraction',
+    'wm_tractsL',
+    'wm_tractsR',
+    'left_right' ]
+for myvar in myvarlist:
+    ants.image_write( t1h[myvar], newprefix + myvar + '.nii.gz' )
+
+myvarlist = [
+    'tissue_segmentation',
+    'dkt_parcellation',
+    'dkt_lobes',
+    'dkt_cortex',
+    'hemisphere_labels' ]
+for myvar in myvarlist:
+    ants.image_write( t1h['dkt_parc'][myvar], newprefix + myvar + '.nii.gz' )
+
+ants.image_write( t1h['hippLR']['HLBin'], newprefix + "hippL" + '.nii.gz' )
+ants.image_write( t1h['hippLR']['HRBin'], newprefix + "hippR" + '.nii.gz' )
