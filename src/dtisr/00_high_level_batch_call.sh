@@ -7,4 +7,4 @@
 # sbatch  --export=ALL --cpus-per-task 1  -o ./slurmout/output.%a.out  --array=1-10  ./echobatchnum.sh
 #
 # for batch dti - there are 194 of these images
-sbatch  --export=ALL --cpus-per-task 24  -o ./slurmout/dtisr.%a.out  --array=1-194  ./batchdtisr.sh
+sbatch  --export=ALL --cpus-per-task 24  -o ~/slurmout/dtisr.%a.out  --array=0-194  /home/ubuntu/coderepo/niall/src/dtisr/01_job_id_subscript.sh

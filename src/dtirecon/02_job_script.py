@@ -26,6 +26,7 @@ if len( sys.argv ) > 1:
 targetfn = targetfns[ fileindex ]
 targetfn2 = re.sub(modality, modality2, targetfn )
 targetsplit = targetfn.split("/")
+print( targetfn )
 targetfn2 = glob.glob( re.sub( targetsplit[9], "*", targetfn2 ))[0]
 if not exists( targetfn ) or not exists( targetfn2 ) :
     print( targetfn2 + "does not exist")
