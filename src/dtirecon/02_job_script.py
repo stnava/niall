@@ -88,17 +88,17 @@ print("Begin Recon 1")
 bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn )
 bval = re.sub( "-SR.nii.gz", ".bval", targetfn )
 dd = antspymm.dipy_dti_recon( dwp['dewarped'][0], bval, bvec, median_radius=8, dilate=1 )
+pd.DataFrame(data=dwp['FD'][0],columns=['FD'] ).to_csv(  newprefixList[0] + 'SR' + 'FD.csv')
 for mykey in ['MD','FA','RGB']:
     ants.image_write( dd[mykey],  newprefixList[0] + 'SR' + mykey + '.nii.gz' )
-pd.DataFrame(data=dwp['FD'][0],columns=['FD'] ).to_csv(  newprefixList[0] + 'SR' + 'FD.csv')
 
 print("Begin Recon 2")
 bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn2 )
 bval = re.sub( "-SR.nii.gz", ".bval", targetfn2 )
 dd = antspymm.dipy_dti_recon( dwp['dewarped'][1], bval, bvec, median_radius=8, dilate=1 )
+pd.DataFrame(data=dwp['FD'][1],columns=['FD'] ).to_csv(  newprefixList[1] + 'SR' + 'FD.csv')
 for mykey in ['MD','FA','RGB']:
     ants.image_write( dd[mykey],  newprefixList[1] + 'SR' + mykey + '.nii.gz' )
-pd.DataFrame(data=dwp['FD'][1],columns=['FD'] ).to_csv(  newprefixList[1] + 'SR' + 'FD.csv')
 
 
 print("complete: " + newprefixList[0] + " & " + newprefixList[2] )
