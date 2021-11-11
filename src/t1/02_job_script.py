@@ -37,12 +37,14 @@ print( "make " +  newoutdir + " " + str( myx ) )
 if not myx:
     os.mkdir( newoutdir )
 
+print( "made " +  newoutdir + " successfully " )
 outfn = newprefix + "hippR" + '.nii.gz'
 myoutfnexists = exists( outfn )
 if myoutfnexists:
     print( outfn + "exists already" )
     sys.exit()
 
+print( "continue " +  outfn + " run " )
 import ants
 import antspymm
 import tensorflow as tf
