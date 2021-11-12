@@ -13,5 +13,5 @@ cpusPerTask=$1
 n=$2
 imageType=$3
 subscriptName=$4
-echo "RUNNING: sbatch  --export=ALL --cpus-per-task $cpusPerTask  -o ~/slurmout/${imageType}.%a.out    --array=1-${n}  $4 "
-sbatch  --export=ALL --cpus-per-task $cpusPerTask  -o ~/slurmout/${imageType}.%a.out    --array=1-${n}  $4
+echo "RUNNING: sbatch  --export=ALL --cpus-per-task $cpusPerTask  -o ~/slurmout/${imageType}.%a.out    --array=0-${n}  $4 "
+sbatch  --export=ALL --cpus-per-task $cpusPerTask  -o ~/slurmout/${imageType}.%a.out    --array=0-${n}  $4
