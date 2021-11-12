@@ -81,7 +81,7 @@ if False:
         syn_sampling = 20, syn_metric='mattes',
         type_of_transform = 'SyN',
         total_sigma = 0.0, random_seed=1,
-        reg_iterations = [200,50,20,0], outprefix="/mnt/cluster/temp/ZZZ" )
+        reg_iterations = [200,50,20,0] )
 
 # ants.image_write( dwp['dewarped'][0], newprefixList[0] + 'SRdewarped.nii.gz' )
 # ants.image_write( dwp['dewarped'][1], newprefixList[1] + 'SRdewarped.nii.gz' )
