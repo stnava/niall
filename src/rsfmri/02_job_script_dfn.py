@@ -156,6 +156,5 @@ corrImg = ants.make_image( gmseg, gmmatDFNCorr  )
 
 corrImgPos = corrImg * ants.threshold_image( corrImg, 0.25, 1 )
 # ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True )
-os.makedirs( newoutdir, exist_ok=True  )
 ants.image_write( und, newprefix + "meanBold.nii.gz" )
 ants.image_write( corrImg, newprefix + "defaultModeConnectivity.nii.gz" )
