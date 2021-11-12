@@ -99,7 +99,7 @@ csfAndWM = ( ants.threshold_image( boldseg, 1, 1 ) +
              ants.threshold_image( boldseg, 3, 3 ) ).morphology("erode",1)
 dwpind = 0
 mycompcor = ants.compcor( dwp['dewarped'][dwpind],
-  ncompcor=6, quantile=0.80, mask = csfAndWM,
+  ncompcor=10, quantile=0.90, mask = csfAndWM,
   filter_type='polynomial', degree=2 )
 
 nt = dwp['dewarped'][dwpind].shape[3]
@@ -127,8 +127,8 @@ tr = ants.get_spacing( dwp['dewarped'][dwpind] )[3]
 highMotionTimes = np.where( dwp['FD'][dwpind] >= 1.0 )
 print( "highMotionTimes: " + str(highMotionTimes) )
 goodtimes = np.where( dwp['FD'][dwpind] < 0.5 )
-gmseg = ants.threshold_image( boldseg, 2, 2 )
-spa, spt = 1.5, 0.0 # spatial, temporal - which we ignore b/c of frequency filtering
+gmseg = ants.threshold_image( boldseg, 2, 2 ).iMath("MD",1)
+spa, spt = 1.5, 0.5 # spatial, temporal - which we ignore b/c of frequency filtering
 smth = ( spa, spa, spa, spt ) # this is for sigmaInPhysicalCoordinates = F
 simg = ants.smooth_image(dwp['dewarped'][dwpind], smth, sigma_in_physical_coordinates = False )
 
@@ -137,7 +137,8 @@ nuisance = np.c_[ nuisance, mycompcor['basis'] ]
 nuisance = np.c_[ nuisance, dwp['FD'][dwpind] ]
 
 gmmat = ants.timeseries_to_matrix( simg, gmseg )
-gmmat = ants.bandpass_filter_matrix( gmmat, tr = tr, lowf=0.03, highf=0.08 ) # some would argue against this
+f=[0.01,0.08]
+gmmat = ants.bandpass_filter_matrix( gmmat, tr = tr, lowf=f[0], highf=f[1] ) # some would argue against this
 gmmat = ants.regress_components( gmmat, nuisance )
 
 postCing = powers_areal_mni_itk['AAL'].unique()[9]
@@ -147,7 +148,7 @@ dfnImg = ants.make_points_image(pts2bold.iloc[ww,:3].values, bmask, radius=1).th
 # ants.plot( und, dfnImg, axis=2, nslices=24, ncol=8 )
 
 dfnmat = ants.timeseries_to_matrix( simg, ants.threshold_image( dfnImg * gmseg, 1, dfnImg.max() ) )
-dfnmat = ants.bandpass_filter_matrix( dfnmat, tr = tr, lowf=0.01, highf=0.09  )
+dfnmat = ants.bandpass_filter_matrix( dfnmat, tr = tr, lowf=f[0], highf=f[1]  )
 dfnmat = ants.regress_components( dfnmat, nuisance )
 dfnsignal = dfnmat.mean( axis = 1 )
 
