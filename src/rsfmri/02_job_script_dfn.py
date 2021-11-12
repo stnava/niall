@@ -19,9 +19,16 @@ def pastetoid( x, n = 10 ):
     xsplit = x.split("/")
     newoutdir=''
     newprefix=''
-    for k in range(keyindex):
+    for k in range(n):
         newoutdir = newoutdir + '/' + xsplit[k]
     return newoutdir
+
+def directory2prefix( x, lo, hi, sep='-' ):
+    xsplit = x.split("/")
+    newprefix=xsplit[lo]
+    for k in range(lo+1,hi):
+        newprefix = newprefix + sep + xsplit[k]
+    return x + "/" + newprefix
 
 rootdir = "/mnt/cluster/data/PPMI2/PPMI/"
 if not exists( rootdir ):
@@ -41,35 +48,15 @@ if 'fileindex' not in globals():
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 targetfn = targetfns[ fileindex ]
-
-
 targetsplit = targetfn.split("/")
-print( targetfn )
-mysubbed = re.sub( modality, 'restingNetworks', targetfn )
-mysubbedsplit = mysubbed.split("/")
-newoutdir = ''
-newprefix = ''
 
-keyindex = 10 # change for each case
-for k in range(keyindex):
-    newoutdir = newoutdir + '/' + mysubbedsplit[k]
-
-newprefix = os.path.splitext(mysubbed)[0]
-newprefix = os.path.splitext(newprefix)[0]
-
-# create the directory
-myx = os.path.isdir( newoutdir )
-print( "make " +  newoutdir + " " + str( myx ) )
-if not myx:
-    os.makedirs( newoutdir, exist_ok=True )
-print( "made " +  newoutdir + " successfully " )
-print("newprefix: " + newprefix )
 istest=False
 if istest:
     targetfn = "/Users/stnava/data/PPMI2/temp/PPMI-53925-20210609-restingStatefMRI-I1490468-dcm2niix-V0.nii.gz"
 
 newoutdir = re.sub( modality, 'restingNetworks', pastetoid( targetfn ) )
-derka
+os.makedirs( newoutdir, exist_ok=True )
+newprefix = directory2prefix( newoutdir, 5, 10 )
 img1 = ants.image_read( targetfn )
 print("begin: " + newprefix )
 if 'dwp' not in globals():
@@ -173,6 +160,5 @@ corrImg = ants.make_image( gmseg, gmmatDFNCorr  )
 
 corrImgPos = corrImg * ants.threshold_image( corrImg, 0.25, 1 )
 # ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True )
-os.makedirs( newoutdir, exist_ok=True  )
 ants.image_write( und, newprefix + "meanBold.nii.gz" )
 ants.image_write( corrImg, newprefix + "defaultModeConnectivity.nii.gz" )
