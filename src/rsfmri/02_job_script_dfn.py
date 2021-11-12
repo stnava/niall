@@ -14,6 +14,15 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+
+def pastetoid( x, n = 10 ):
+    xsplit = x.split("/")
+    newoutdir=''
+    newprefix=''
+    for k in range(keyindex):
+        newoutdir = newoutdir + '/' + xsplit[k]
+    return newoutdir
+
 rootdir = "/mnt/cluster/data/PPMI2/PPMI/"
 if not exists( rootdir ):
     rootdir = "/Users/stnava/data/PPMI2/"
@@ -29,6 +38,8 @@ fileindex = 1
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 targetfn = targetfns[ fileindex ]
+
+
 targetsplit = targetfn.split("/")
 print( targetfn )
 mysubbed = re.sub( modality, 'restingNetworks', targetfn )
@@ -49,8 +60,12 @@ if not myx:
     os.makedirs( newoutdir, exist_ok=True )
 print( "made " +  newoutdir + " successfully " )
 print("newprefix: " + newprefix )
+istest=False
+if istest:
+    targetfn = "/Users/stnava/data/PPMI2/temp/PPMI-53925-20210609-restingStatefMRI-I1490468-dcm2niix-V0.nii.gz"
 
-
+newoutdir = re.sub( modality, 'restingNetworks', pastetoid( targetfn ) )
+derka
 img1 = ants.image_read( targetfn )
 print("begin: " + newprefix )
 if 'dwp' not in globals():
@@ -74,17 +89,15 @@ else:
     t1fn = t1fns[ len(t1fns) - 1 ] # take the last one
 mysubbedt1 = re.sub('T1w', 'T1wHierarchical', t1fn )
 
-def pastetoid( x, n = 10 ):
-    xsplit = x.split("/")
-    newoutdir=''
-    newprefix=''
-    for k in range(keyindex):
-        newoutdir = newoutdir + '/' + xsplit[k]
-    return newoutdir
 
 # this is a little sloppy but works
-t1 = ants.image_read( glob.glob( pastetoid(mysubbedt1) + '/*brain_n4_dnz.nii.gz' )[0] )
-t1seg = ants.image_read( glob.glob( pastetoid(mysubbedt1) + '/*tissue_segmentation.nii.gz' )[0] )
+if not istest:
+    t1 = ants.image_read( glob.glob( pastetoid(mysubbedt1) + '/*brain_n4_dnz.nii.gz' )[0] )
+    t1seg = ants.image_read( glob.glob( pastetoid(mysubbedt1) + '/*tissue_segmentation.nii.gz' )[0] )
+else:
+    t1 = ants.image_read( "/Users/stnava/data/PPMI2/temp/53925-20210609-T1wHierarchical-I1490466-brain_n4_dnz.nii.gz" )
+    t1seg = ants.image_read( "/Users/stnava/data/PPMI2/temp/53925-20210609-T1wHierarchical-I1490466-tissue_segmentation.nii.gz" )
+
 t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something different
 # ants.plot( t1*t1bxt, t1reg['warpedfixout'] , axis=2, overlay_alpha=0.25, ncol=8, nslices=24 )
 # ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
@@ -156,5 +169,6 @@ corrImg = ants.make_image( gmseg, gmmatDFNCorr  )
 
 corrImgPos = corrImg * ants.threshold_image( corrImg, 0.25, 1 )
 # ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True )
+os.makedirs( newoutdir, exist_ok=True  )
 ants.image_write( und, newprefix + "meanBold.nii.gz" )
 ants.image_write( corrImg, newprefix + "defaultModeConnectivity.nii.gz" )
