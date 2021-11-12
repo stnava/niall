@@ -1,7 +1,5 @@
 ---
-title: "Hello R Markdown"
-author: "Awesome Me"
-date: "2018-02-14"
+title: "Resting state processing: QC"
 output: html_document
 ---
 
@@ -137,9 +135,9 @@ mycompcor = ants.compcor( dwp['dewarped'][dwpind],
 nt = dwp['dewarped'][dwpind].shape[3]
 import matplotlib.pyplot as plt
 plt.plot(  range( nt ), mycompcor['components'][:,0] )
-# plt.show()
+plt.show()
 plt.plot(  range( nt ), mycompcor['components'][:,1] )
-# plt.show()
+plt.show()
 
 myvoxes = range(powers_areal_mni_itk.shape[0])
 anat = powers_areal_mni_itk['Anatomy']
