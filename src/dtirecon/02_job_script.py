@@ -6,6 +6,7 @@ os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 from os.path import exists
 import glob
 import re
+from matplotlib import pyplot as plt
 rootdir = "/mnt/cluster/data/PPMI2/PPMI/"
 if not exists( rootdir ):
     rootdir = "/Users/stnava/data/PPMI2/"
@@ -73,11 +74,12 @@ import antspyt1w
 img1 = ants.image_read( targetfn )
 img2 = ants.image_read( targetfn2 )
 print("begin: " + newprefix )
-dwp = antspymm.dewarp_imageset( [img1,img2], iterations=2, padding=6,
-    syn_sampling = 20, syn_metric='mattes',
-    type_of_transform = 'SyN',
-    total_sigma = 0.0, random_seed=1,
-    reg_iterations = [200,50,20,0] )
+if False:
+    dwp = antspymm.dewarp_imageset( [img1,img2], iterations=2, padding=6,
+        syn_sampling = 20, syn_metric='mattes',
+        type_of_transform = 'SyN',
+        total_sigma = 0.0, random_seed=1,
+        reg_iterations = [200,50,20,0] )
 
 # ants.image_write( dwp['dewarped'][0], newprefixList[0] + 'SRdewarped.nii.gz' )
 # ants.image_write( dwp['dewarped'][1], newprefixList[1] + 'SRdewarped.nii.gz' )
@@ -89,8 +91,14 @@ if not exists( outfn1 ):
     print("Begin Recon 1: " + outfn1 )
     bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn )
     bval = re.sub( "-SR.nii.gz", ".bval", targetfn )
-    dd = antspymm.dipy_dti_recon( dwp['dewarped'][0], bval, bvec, median_radius=8, dilate=1 )
-    pd.DataFrame(data=dwp['FD'][0],columns=['FD'] ).to_csv(  newprefixList[0] + 'SR' + 'FD.csv')
+    dd = antspymm.dipy_dti_recon( img1, bval, bvec, median_radius=8, dilate=1 )
+    plt.imshow(dd['RGB'].numpy()[76,:,:,:])
+    plt.savefig( newprefixList[0] + 'SRRGBsliceX.png' )
+    plt.imshow(dd['RGB'].numpy()[:,76,:,:])
+    plt.savefig( newprefixList[0] + 'SRRGBsliceY.png' )
+    plt.imshow(dd['RGB'].numpy()[:,:,76,:])
+    plt.savefig( newprefixList[0] + 'SRRGBsliceZ.png' )
+#    pd.DataFrame(data=dwp['FD'][0],columns=['FD'] ).to_csv(  newprefixList[0] + 'SR' + 'FD.csv')
     for mykey in ['MD','FA','RGB']:
         ants.image_write( dd[mykey],  newprefixList[0] + 'SR' + mykey + '.nii.gz' )
 
@@ -99,8 +107,14 @@ if not exists( outfn1 ):
     print("Begin Recon 2: " + outfn1 )
     bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn2 )
     bval = re.sub( "-SR.nii.gz", ".bval", targetfn2 )
-    ee = antspymm.dipy_dti_recon( dwp['dewarped'][1], bval, bvec, median_radius=8, dilate=1 )
-    pd.DataFrame(data=dwp['FD'][1],columns=['FD'] ).to_csv(  newprefixList[1] + 'SR' + 'FD.csv')
+    ee = antspymm.dipy_dti_recon( img2, bval, bvec, median_radius=8, dilate=1 )
+    plt.imshow(ee['RGB'].numpy()[76,:,:,:])
+    plt.savefig( newprefixList[1] + 'SRRGBsliceX.png' )
+    plt.imshow(ee['RGB'].numpy()[:,76,:,:])
+    plt.savefig( newprefixList[1] + 'SRRGBsliceY.png' )
+    plt.imshow(ee['RGB'].numpy()[:,:,76,:])
+    plt.savefig( newprefixList[1] + 'SRRGBsliceZ.png' )
+#    pd.DataFrame(data=dwp['FD'][1],columns=['FD'] ).to_csv(  newprefixList[1] + 'SR' + 'FD.csv')
     for mykey in ['MD','FA','RGB']:
         ants.image_write( ee[mykey],  newprefixList[1] + 'SR' + mykey + '.nii.gz' )
 
