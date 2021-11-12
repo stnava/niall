@@ -25,7 +25,10 @@ if len(targetfns) == 0:
     targetfns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*" +
     modality + "*dcm2niix-V0.nii.gz" )
 import sys
-fileindex = 1
+
+if 'fileindex' not in globals():
+    fileindex = 22
+
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 targetfn = targetfns[ fileindex ]
@@ -35,6 +38,7 @@ mysubbed = re.sub( modality, 'restingNetworks', targetfn )
 mysubbedsplit = mysubbed.split("/")
 newoutdir = ''
 newprefix = ''
+
 keyindex = 10 # change for each case
 for k in range(keyindex):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
