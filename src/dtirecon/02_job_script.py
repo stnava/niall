@@ -47,7 +47,7 @@ for newout in [mysubbed, mysubbed2]:
     keyindex = 10 # change for each case
     for k in range(keyindex):
         newoutdir = newoutdir + '/' + mysubbedsplit[k]
-        if k > 5:
+        if k > 4:
             newprefix = newprefix + mysubbedsplit[k] + '-'
     newprefix = newoutdir + '/' + newprefix
     # create the directory
@@ -56,8 +56,10 @@ for newout in [mysubbed, mysubbed2]:
     if not myx:
         os.makedirs( newoutdir, exist_ok=True )
     print( "made " +  newoutdir + " successfully " )
+    print("newprefix: " + newprefix )
     newprefixList.append( newprefix )
     newoutdirList.append( newoutdir )
+
 
 myoutfnexists = exists( mysubbed )
 myoutfnexists2 = exists( newprefixList[1] + 'SRRGB.nii.gz' )
