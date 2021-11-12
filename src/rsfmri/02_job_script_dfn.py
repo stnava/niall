@@ -69,9 +69,9 @@ bmask = antspynet.brain_extraction( und, 'bold' ).threshold_image( 0.3, 1.0 )
 powers_areal_mni_itk = pd.read_csv(antspymm.get_data('powers_mni_itk', target_extension=".csv")) # power coordinates
 ptidIndex = 6
 dateIndex = ptidIndex + 1
-t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*"+mysubbedsplit[ptidIndex]+"*" + mysubbedsplit[dateIndex] + "*T1*dcm2niix-V0.nii.gz" )
+t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*"+targetsplit[ptidIndex]+"*" + targetsplit[dateIndex] + "*T1*dcm2niix-V0.nii.gz" )
 if len( t1fns ) == 0:
-    print("Missing T1 for "+mysubbedsplit[ptidIndex]+ " " + mysubbedsplit[dateIndex] )
+    print("Missing T1 for "+targetsplit[ptidIndex]+ " " + targetsplit[dateIndex] )
 else:
     t1fn = t1fns[ len(t1fns) - 1 ] # take the last one
 mysubbedt1 = re.sub('T1w', 'T1wHierarchical', t1fn )
