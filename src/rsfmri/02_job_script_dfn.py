@@ -93,21 +93,18 @@ t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something 
 # ants.plot( t1*t1bxt, t1reg['warpedfixout'] , axis=2, overlay_alpha=0.25, ncol=8, nslices=24 )
 # ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
 boldseg = ants.apply_transforms( und, t1seg,
-  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
+  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' ) * bmask
 gmseg = ants.threshold_image( t1seg, 2, 2 ).iMath("MD",1)
 gmseg = ants.apply_transforms( und, gmseg,
-  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
+  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
 csfAndWM = ( ants.threshold_image( t1seg, 1, 1 ) +
              ants.threshold_image( t1seg, 3, 3 ) ).morphology("erode",2)
 csfAndWM = ants.apply_transforms( und, csfAndWM,
-  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
+  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
 
-# ants.plot( und, boldseg, overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
-csfAndWM = ( ants.threshold_image( boldseg, 1, 1 ) +
-             ants.threshold_image( boldseg, 3, 3 ) ).morphology("erode",1)
 dwpind = 0
 mycompcor = ants.compcor( dwp['dewarped'][dwpind],
-  ncompcor=10, quantile=0.90, mask = csfAndWM,
+  ncompcor=10, quantile=0.80, mask = csfAndWM,
   filter_type='polynomial', degree=2 )
 
 nt = dwp['dewarped'][dwpind].shape[3]
