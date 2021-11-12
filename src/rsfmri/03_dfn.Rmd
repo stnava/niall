@@ -170,6 +170,8 @@ nuisance = np.c_[ nuisance, dwp['FD'][dwpind] ]
 gmmat = ants.timeseries_to_matrix( simg, gmseg )
 f=[0.01,0.08]
 gmmat = ants.bandpass_filter_matrix( gmmat, tr = tr, lowf=f[0], highf=f[1] ) # some would argue against this
+gmsignal = gmmat.mean( axis = 1 )
+nuisance = np.c_[ nuisance, gmsignal ]
 gmmat = ants.regress_components( gmmat, nuisance )
 
 postCing = powers_areal_mni_itk['AAL'].unique()[9]
@@ -184,7 +186,7 @@ for mynet in [5,11]:
   ants.plot( und, dfnImg, axis=2, nslices=24, ncol=8 )
   dfnmat = ants.timeseries_to_matrix( simg, ants.threshold_image( dfnImg * gmseg, 1, dfnImg.max() ) )
   dfnmat = ants.bandpass_filter_matrix( dfnmat, tr = tr, lowf=f[0], highf=f[1]  )
-  # dfnmat = ants.regress_components( dfnmat, nuisance )
+  dfnmat = ants.regress_components( dfnmat, nuisance )
   dfnsignal = dfnmat.mean( axis = 1 )
   from scipy.stats.stats import pearsonr
   gmmatDFNCorr = np.zeros( gmmat.shape[1] )
