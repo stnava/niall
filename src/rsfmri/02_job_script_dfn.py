@@ -94,6 +94,14 @@ t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something 
 # ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
 boldseg = ants.apply_transforms( und, t1seg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
+gmseg = ants.threshold_image( t1seg, 2, 2 ).iMath("MD",1)
+gmseg = ants.apply_transforms( und, gmseg,
+  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
+csfAndWM = ( ants.threshold_image( t1seg, 1, 1 ) +
+             ants.threshold_image( t1seg, 3, 3 ) ).morphology("erode",2)
+csfAndWM = ants.apply_transforms( und, csfAndWM,
+  t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
+
 # ants.plot( und, boldseg, overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
 csfAndWM = ( ants.threshold_image( boldseg, 1, 1 ) +
              ants.threshold_image( boldseg, 3, 3 ) ).morphology("erode",1)
@@ -127,7 +135,6 @@ tr = ants.get_spacing( dwp['dewarped'][dwpind] )[3]
 highMotionTimes = np.where( dwp['FD'][dwpind] >= 1.0 )
 print( "highMotionTimes: " + str(highMotionTimes) )
 goodtimes = np.where( dwp['FD'][dwpind] < 0.5 )
-gmseg = ants.threshold_image( boldseg, 2, 2 ).iMath("MD",1)
 spa, spt = 1.5, 0.5 # spatial, temporal - which we ignore b/c of frequency filtering
 smth = ( spa, spa, spa, spt ) # this is for sigmaInPhysicalCoordinates = F
 simg = ants.smooth_image(dwp['dewarped'][dwpind], smth, sigma_in_physical_coordinates = False )
