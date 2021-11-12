@@ -179,7 +179,12 @@ networks = powers_areal_mni_itk['SystemName'].unique()
 
 ants.image_write( und, newprefix + "meanBold.nii.gz" )
 
-for mynet in [5,11]:
+# array(['Cingulo-opercular Task Control', 'Default Mode',
+#       'Memory Retrieval', 'Ventral Attention', 'Visual',
+#       'Fronto-parietal Task Control', 'Salience', 'Subcortical',
+#       'Cerebellar', 'Dorsal Attention'], dtype=object)
+
+for mynet in [3,5,6,7,8,9,10,11,12,13]:
   netname = re.sub( " ", "", networks[mynet] )
   ww = np.where( powers_areal_mni_itk['SystemName'] == networks[mynet] )[0]
   dfnImg = ants.make_points_image(pts2bold.iloc[ww,:3].values, bmask, radius=1).threshold_image( 1, 1400 )
