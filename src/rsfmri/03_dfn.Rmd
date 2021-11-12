@@ -29,10 +29,10 @@ haveit = usePkg( "reticulate" )
 
 ```{python}
 import os
-nth="8"
-os.environ["TF_NUM_INTEROP_THREADS"] = nth
-os.environ["TF_NUM_INTRAOP_THREADS"] = nth
-os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
+# nth=os.getenv('ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS')
+# os.environ["TF_NUM_INTEROP_THREADS"] = nth
+# os.environ["TF_NUM_INTRAOP_THREADS"] = nth
+# os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 fileindex = int( os.getenv('SLURM_ARRAY_TASK_ID') )
 print( "SLURM_ARRAY_TASK_ID: " + str( fileindex ) )
 import glob
