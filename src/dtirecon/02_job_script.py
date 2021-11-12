@@ -79,7 +79,7 @@ print("begin: " + newprefix )
 if True:
     b0indices = antspymm.segment_timeseries_by_meanvalue( img1, 0.995 )['highermeans']
     dwp = antspymm.dewarp_imageset( [img1,img2], iterations=2, padding=6,
-        target_idx =
+        target_idx = b0indices,
         syn_sampling = 20, syn_metric='mattes',
         type_of_transform = 'SyN',
         total_sigma = 0.0, random_seed=1,
