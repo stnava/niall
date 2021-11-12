@@ -55,7 +55,7 @@ img1 = ants.image_read( targetfn )
 print("begin: " + newprefix )
 if 'dwp' not in globals():
     dwp = antspymm.dewarp_imageset( [img1], iterations=1, padding=8,
-        target_idx = [8,9,10],
+        target_idx = [7,8,9],
         syn_sampling = 20, syn_metric='mattes',
         type_of_transform = 'SyN',
         total_sigma = 0.0, random_seed=1,
@@ -67,29 +67,36 @@ bmask = antspynet.brain_extraction( und, 'bold' ).threshold_image( 0.3, 1.0 )
 powers_areal_mni_itk = pd.read_csv(antspymm.get_data('powers_mni_itk', target_extension=".csv")) # power coordinates
 ptidIndex = 6
 dateIndex = ptidIndex + 1
-t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*"+mysubbedsplit[ptidIndex]+"*" + mysubbedsplit[dateIndex] + "*T1*dcm2niix-V0.nii.gz" )
+t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*"+mysubbedsplit[ptidIndex]+"*" + mysubbedsplit[dateIndex] + "*T1*dcm2niix-V0.nii.gz" )
 if len( t1fns ) == 0:
     print("Missing T1 for "+mysubbedsplit[ptidIndex]+ " " + mysubbedsplit[dateIndex] )
 else:
     t1fn = t1fns[ len(t1fns) - 1 ] # take the last one
 mysubbedt1 = re.sub('T1w', 'T1wHierarchical', t1fn )
-derka
-t1fn = antspymm.get_data( 'LS2001_3T_T1w_MPR1_gdc' , target_extension='.nii.gz' )
-t1 = ants.image_read( t1fn ).n3_bias_field_correction( 8 ).n3_bias_field_correction( 4 )
-t1bxt = antspynet.brain_extraction( t1, 't1' ).threshold_image( 0.3, 1.0 )
-t1seg = antspynet.deep_atropos( t1 )
-t1reg = ants.registration( und * bmask, t1 * t1bxt, "SyN" ) # in practice use something different
+
+def pastetoid( x, n = 10 ):
+    xsplit = x.split("/")
+    newoutdir=''
+    newprefix=''
+    for k in range(keyindex):
+        newoutdir = newoutdir + '/' + xsplit[k]
+    return newoutdir
+
+# this is a little sloppy but works
+t1 = ants.image_read( glob.glob( pastetoid(mysubbedt1) + '/*brain_n4_dnz.nii.gz' )[0] )
+t1seg = ants.image_read( glob.glob( pastetoid(mysubbedt1) + '/*tissue_segmentation.nii.gz' )[0] )
+t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something different
 # ants.plot( t1*t1bxt, t1reg['warpedfixout'] , axis=2, overlay_alpha=0.25, ncol=8, nslices=24 )
 # ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
-boldseg = ants.apply_transforms( und, t1seg['segmentation_image'],
+boldseg = ants.apply_transforms( und, t1seg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )
 # ants.plot( und, boldseg, overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
 csfAndWM = ( ants.threshold_image( boldseg, 1, 1 ) +
              ants.threshold_image( boldseg, 3, 3 ) ).morphology("erode",1)
-dwpind = 1
+dwpind = 0
 mycompcor = ants.compcor( dwp['dewarped'][dwpind],
   ncompcor=6, quantile=0.80, mask = csfAndWM,
-  filter_type='polynomial', degree=4 )
+  filter_type='polynomial', degree=2 )
 
 nt = dwp['dewarped'][dwpind].shape[3]
 import matplotlib.pyplot as plt
@@ -105,7 +112,7 @@ Brod = powers_areal_mni_itk['Brodmann']
 xAAL  = powers_areal_mni_itk['AAL']
 ch2 = ants.image_read( ants.get_ants_data( "ch2" ) )
 if 'treg' not in globals():
-    treg = ants.registration( t1 * t1bxt, ch2, 'SyN' )
+    treg = ants.registration( t1, ch2, 'SyN' )
 concatx2 = treg['invtransforms'] + t1reg['invtransforms']
 pts2bold = ants.apply_transforms_to_points( 3, powers_areal_mni_itk, concatx2,whichtoinvert = ( True, False, True, False ) )
 locations = pts2bold.iloc[:,:3].values
@@ -113,7 +120,7 @@ ptImg = ants.make_points_image( locations, bmask, radius = 2 )
 # ants.plot( und, ptImg, axis=2, nslices=24, ncol=8 )
 
 tr = ants.get_spacing( dwp['dewarped'][dwpind] )[3]
-highMotionTimes = np.where( dwp['FD'][dwpind] >= 0.5 )
+highMotionTimes = np.where( dwp['FD'][dwpind] >= 1.0 )
 print( "highMotionTimes: " + str(highMotionTimes) )
 goodtimes = np.where( dwp['FD'][dwpind] < 0.5 )
 gmseg = ants.threshold_image( boldseg, 2, 2 )
@@ -148,4 +155,6 @@ for k in range( gmmat.shape[1] ):
 corrImg = ants.make_image( gmseg, gmmatDFNCorr  )
 
 corrImgPos = corrImg * ants.threshold_image( corrImg, 0.25, 1 )
-ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True )
+# ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True )
+ants.image_write( und, newprefix + "meanBold.nii.gz" )
+ants.image_write( corrImg, newprefix + "defaultModeConnectivity.nii.gz" )
