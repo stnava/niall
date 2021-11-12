@@ -93,7 +93,9 @@ if not exists( outfn1 ):
     print("Begin Recon 1: " + outfn1 )
     bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn )
     bval = re.sub( "-SR.nii.gz", ".bval", targetfn )
-    dd = antspymm.dipy_dti_recon( img1, bval, bvec, median_radius=8, dilate=1 )
+    b0indices = antspymm.segment_timeseries_by_meanvalue( img1, 0.995 )['highermeans']
+    dd = antspymm.dipy_dti_recon( img1, bval, bvec, median_radius=8, dilate=1,
+        vol_idx = b0indices )
     plt.imshow(dd['RGB'].numpy()[76,:,:,:])
     plt.savefig( newprefixList[0] + 'SRRGBsliceX.png' )
     plt.imshow(dd['RGB'].numpy()[:,76,:,:])
@@ -107,9 +109,11 @@ if not exists( outfn1 ):
 outfn1 = newprefixList[1] + 'SRRGB.nii.gz'
 if not exists( outfn1 ):
     print("Begin Recon 2: " + outfn1 )
+    b0indices = antspymm.segment_timeseries_by_meanvalue( img2, 0.995 )['highermeans']
     bvec = re.sub( "-SR.nii.gz", ".bvec", targetfn2 )
     bval = re.sub( "-SR.nii.gz", ".bval", targetfn2 )
-    ee = antspymm.dipy_dti_recon( img2, bval, bvec, median_radius=8, dilate=1 )
+    ee = antspymm.dipy_dti_recon( img2, bval, bvec, median_radius=8, dilate=1,
+        vol_idx = b0indices )
     plt.imshow(ee['RGB'].numpy()[76,:,:,:])
     plt.savefig( newprefixList[1] + 'SRRGBsliceX.png' )
     plt.imshow(ee['RGB'].numpy()[:,76,:,:])
