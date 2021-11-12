@@ -120,6 +120,7 @@ ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24,
 boldseg = ants.apply_transforms( und, t1seg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' ) * bmask
 gmseg = ants.threshold_image( t1seg, 2, 2 ).iMath("MD",1)
+gmseg = gmseg + ants.threshold_image( t1seg, 4, 4 )
 gmseg = ants.apply_transforms( und, gmseg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
 csfAndWM = ( ants.threshold_image( t1seg, 1, 1 ) +
@@ -180,9 +181,9 @@ ants.image_write( und, newprefix + "meanBold.nii.gz" )
 # array(['Cingulo-opercular Task Control', 'Default Mode',
 #       'Memory Retrieval', 'Ventral Attention', 'Visual',
 #       'Fronto-parietal Task Control', 'Salience', 'Subcortical',
-#       'Cerebellar', 'Dorsal Attention'], dtype=object)
-
-for mynet in [3,5,6,7,8,9,10,11,12,13]:
+#       'Dorsal Attention'], dtype=object)
+# cerebellar is 12
+for mynet in [3,5,6,7,8,9,10,11,13]:
   netname = re.sub( " ", "", networks[mynet] )
   ww = np.where( powers_areal_mni_itk['SystemName'] == networks[mynet] )[0]
   dfnImg = ants.make_points_image(pts2bold.iloc[ww,:3].values, bmask, radius=1).threshold_image( 1, 1400 )
