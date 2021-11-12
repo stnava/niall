@@ -1,0 +1,34 @@
+---
+title: "Hello R Markdown"
+author: "Awesome Me"
+date: "2018-02-14"
+output: html_document
+---
+
+
+
+```{r}
+usePkg <- function(packageName, allowInstall=TRUE ) {
+  # extended based on H Wickham's advice
+  success <- requireNamespace(packageName, quietly=TRUE)
+  if (!success & allowInstall ) {
+    install.packages(packageName, repos = "http://cran.r-project.org",
+      dependencies = TRUE )
+    success <- requireNamespace(packageName, quietly=TRUE)
+    attachNamespace(packageName)
+  } else {
+    temp <- tryCatch({attachNamespace(packageName)},
+      error = function(e) {
+      }, finally = {
+      })
+  }
+  return(success)
+}
+haveit = usePkg( "reticulate" )
+```
+
+```{python}
+import os
+fileindex = int( os.getenv('SLURM_ARRAY_TASK_ID') )
+print( "SLURM_ARRAY_TASK_ID" + str( fileindex ) )
+```
