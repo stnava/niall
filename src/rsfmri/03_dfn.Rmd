@@ -68,7 +68,7 @@ modality = "restingStatefMRI"
 targetfns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*" + modality + "*dcm2niix-V0-SR.nii.gz" )
 if len(targetfns) == 0:
     targetfns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*" +
-    modality + "*dcm2niix-V0.nii.gz" )
+    modality + "*dcm2niix-V0-SR.nii.gz" )
 import sys
 
 targetfn = targetfns[ fileindex ]
@@ -113,7 +113,7 @@ else:
     t1 = ants.image_read( "/Users/stnava/data/PPMI2/temp/53925-20210609-T1wHierarchical-I1490466-brain_n4_dnz.nii.gz" )
     t1seg = ants.image_read( "/Users/stnava/data/PPMI2/temp/53925-20210609-T1wHierarchical-I1490466-tissue_segmentation.nii.gz" )
 
-t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something different
+t1reg = ants.registration( und * bmask, t1, "SyNBold" ) # in practice use something different
 ants.plot( t1, t1reg['warpedfixout'] , axis=2, overlay_alpha=0.25, ncol=8, nslices=24 )
 ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
 boldseg = ants.apply_transforms( und, t1seg,
@@ -129,14 +129,13 @@ csfAndWM = ants.apply_transforms( und, csfAndWM,
 
 dwpind = 0
 mycompcor = ants.compcor( dwp['dewarped'][dwpind],
-  ncompcor=10, quantile=0.80, mask = csfAndWM,
+  ncompcor=6, quantile=0.90, mask = csfAndWM,
   filter_type='polynomial', degree=2 )
 
 nt = dwp['dewarped'][dwpind].shape[3]
 import matplotlib.pyplot as plt
-plt.plot(  range( nt ), mycompcor['components'][:,0] )
-plt.show()
-plt.plot(  range( nt ), mycompcor['components'][:,1] )
+for k in range(nc):
+	plt.plot(  range( nt ), mycompcor['components'][:,k] )
 plt.show()
 
 myvoxes = range(powers_areal_mni_itk.shape[0])
@@ -151,7 +150,7 @@ concatx2 = treg['invtransforms'] + t1reg['invtransforms']
 pts2bold = ants.apply_transforms_to_points( 3, powers_areal_mni_itk, concatx2,whichtoinvert = ( True, False, True, False ) )
 locations = pts2bold.iloc[:,:3].values
 ptImg = ants.make_points_image( locations, bmask, radius = 2 )
-ants.plot( und, ptImg, axis=2, nslices=24, ncol=8 )
+ants.plot( und, ptImg, axis=2, nslices=24, ncol=8, crop=True )
 
 tr = ants.get_spacing( dwp['dewarped'][dwpind] )[3]
 highMotionTimes = np.where( dwp['FD'][dwpind] >= 1.0 )
@@ -161,7 +160,7 @@ spa, spt = 1.5, 0.5 # spatial, temporal - which we ignore b/c of frequency filte
 smth = ( spa, spa, spa, spt ) # this is for sigmaInPhysicalCoordinates = F
 simg = ants.smooth_image(dwp['dewarped'][dwpind], smth, sigma_in_physical_coordinates = False )
 
-nuisance = mycompcor['components']
+nuisance = mycompcor[ 'components' ]
 nuisance = np.c_[ nuisance, mycompcor['basis'] ]
 nuisance = np.c_[ nuisance, dwp['FD'][dwpind] ]
 
@@ -186,7 +185,7 @@ for mynet in [3,5,6,7,8,9,10,11,13]:
   netname = re.sub( " ", "", networks[mynet] )
   ww = np.where( powers_areal_mni_itk['SystemName'] == networks[mynet] )[0]
   dfnImg = ants.make_points_image(pts2bold.iloc[ww,:3].values, bmask, radius=1).threshold_image( 1, 1400 )
-  ants.plot( und, dfnImg, axis=2, nslices=24, ncol=8 )
+  ants.plot( und, dfnImg, axis=2, nslices=24, ncol=8, crop=True  )
   dfnmat = ants.timeseries_to_matrix( simg, ants.threshold_image( dfnImg * gmseg, 1, dfnImg.max() ) )
   dfnmat = ants.bandpass_filter_matrix( dfnmat, tr = tr, lowf=f[0], highf=f[1]  )
   dfnmat = ants.regress_components( dfnmat, nuisance )
@@ -197,7 +196,7 @@ for mynet in [3,5,6,7,8,9,10,11,13]:
     gmmatDFNCorr[ k ] = pearsonr( dfnsignal, gmmat[:,k] )[0]
   corrImg = ants.make_image( gmseg, gmmatDFNCorr  )
   corrImgPos = corrImg * ants.threshold_image( corrImg, 0.25, 1 )
-  ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True )
+  ants.plot( und, corrImgPos, axis=2, overlay_alpha = 0.6, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True, crop=True )
   ants.image_write( corrImg, newprefix + netname + "Connectivity.nii.gz" )
 
 ```
