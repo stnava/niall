@@ -128,14 +128,16 @@ csfAndWM = ants.apply_transforms( und, csfAndWM,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
 
 dwpind = 0
+nc = 6
 mycompcor = ants.compcor( dwp['dewarped'][dwpind],
-  ncompcor=6, quantile=0.90, mask = csfAndWM,
+  ncompcor=nc, quantile=0.90, mask = csfAndWM,
   filter_type='polynomial', degree=2 )
 
 nt = dwp['dewarped'][dwpind].shape[3]
 import matplotlib.pyplot as plt
 for k in range(nc):
 	plt.plot(  range( nt ), mycompcor['components'][:,k] )
+
 plt.show()
 
 myvoxes = range(powers_areal_mni_itk.shape[0])
