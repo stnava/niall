@@ -122,10 +122,10 @@ nuisance = np.c_[ nuisance, mycompcor['basis'] ]
 nuisance = np.c_[ nuisance, dwp['FD'][dwpind] ]
 
 gmmat = ants.timeseries_to_matrix( simg, gmseg )
-gmsignal = gmmat.mean( axis = 1 )
-nuisance = np.c_[ nuisance, gmsignal ]
 f=[0.01,0.08]
 gmmat = ants.bandpass_filter_matrix( gmmat, tr = tr, lowf=f[0], highf=f[1] ) # some would argue against this
+gmsignal = gmmat.mean( axis = 1 )
+nuisance = np.c_[ nuisance, gmsignal ]
 gmmat = ants.regress_components( gmmat, nuisance )
 
 # get SNc labels
