@@ -77,11 +77,24 @@ t1seg = ants.image_read( re.sub('brain_n4_dnz-SR', 'tissuesegmentationSR',t1fn) 
 t1 = ants.image_read( t1fn )
 
 t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something different
+
+# get BF labels
+concattx =[]
+concattx.append( t1reg['fwdtransforms'][0] )
+concattx.append( t1reg['fwdtransforms'][1] )
+concattx.append( t1wtx )
+concattx.append( t1atx )
+mybf = ants.image_read( antspyt1w.get_data( "CIT168_basal_forebrain_adni", target_extension='.nii.gz' ) )
+mybf2t1 = ants.apply_transforms( t1, mybf, concattx[2:4], interpolator='nearestNeighbor')
+ants.image_write( mybf2t1, re.sub( "brain_n4_dnz-SR" , "basalforebrain-SR" , t1fn)  )
+mybf = ants.apply_transforms( und, mybf, concattx, interpolator='nearestNeighbor')
+
 # ants.plot( t1*t1bxt, t1reg['warpedfixout'] , axis=2, overlay_alpha=0.25, ncol=8, nslices=24 )
 # ants.plot( und, t1reg['warpedmovout'], overlay_alpha = 0.25, axis=2, nslices=24, ncol=6 )
 boldseg = ants.apply_transforms( und, t1seg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' ) * bmask
 gmseg = ants.threshold_image( t1seg, 2, 2 ).iMath("MD",1)
+gmseg = gmseg + ants.threshold_image( mybf2t1, 1, 4 )
 gmseg = ants.apply_transforms( und, gmseg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
 csfAndWM = ( ants.threshold_image( t1seg, 1, 1 ) +
@@ -109,10 +122,10 @@ nuisance = np.c_[ nuisance, mycompcor['basis'] ]
 nuisance = np.c_[ nuisance, dwp['FD'][dwpind] ]
 
 gmmat = ants.timeseries_to_matrix( simg, gmseg )
-f=[0.01,0.08]
-gmmat = ants.bandpass_filter_matrix( gmmat, tr = tr, lowf=f[0], highf=f[1] ) # some would argue against this
 gmsignal = gmmat.mean( axis = 1 )
 nuisance = np.c_[ nuisance, gmsignal ]
+f=[0.01,0.08]
+gmmat = ants.bandpass_filter_matrix( gmmat, tr = tr, lowf=f[0], highf=f[1] ) # some would argue against this
 gmmat = ants.regress_components( gmmat, nuisance )
 
 # get SNc labels
@@ -120,10 +133,9 @@ sncfn = re.sub('brain_n4_dnz-SR', 'SYNCC2CIT168Labels', t1fn)
 if not exists( sncfn ) :
     print( sncfn + ' does not exist' )
 mysnc = ants.image_read( sncfn )
-mysncalone = ants.threshold_image( mysnc, 7, 7 ) + ants.threshold_image( mysnc, 23, 23 )
+mysncalone = ants.threshold_image( mysnc, 7, 7 ) + ants.threshold_image( mysnc, 23, 23 ) + ants.threshold_image( mysnc, 9, 9 ) + ants.threshold_image( mysnc, 25, 25 )
 mysncalone = ants.apply_transforms( und, mysncalone, t1reg['fwdtransforms'], interpolator='nearestNeighbor')
-import pandas as pd
-mycsv = pd.read_csv( antspyt1w.get_data( "CIT168_Reinf_Learn_v1_label_descriptions_pad" , target_extension='.csv' ) )
+# mycsv = pd.read_csv( antspyt1w.get_data( "CIT168_Reinf_Learn_v1_label_descriptions_pad" , target_extension='.csv' ) )
 
 # process signal from snc bold
 dfnmat = ants.timeseries_to_matrix( simg, mysncalone )
@@ -137,15 +149,5 @@ for k in range( gmmat.shape[1] ):
 corrImg = ants.make_image( gmseg, gmmatDFNCorr  )
 ants.image_write( corrImg, newprefix + "SNCConnectivity.nii.gz" )
 ants.image_write( mysncalone, newprefix + "SNC.nii.gz" )
-# get BF labels
-concattx =[]
-concattx.append( t1reg['fwdtransforms'][0] ) #+ t1wtx + t1atx
-concattx.append( t1reg['fwdtransforms'][1] ) #+ t1wtx + t1atx
-concattx.append( t1wtx )
-concattx.append( t1atx )
-mybf = ants.image_read( antspyt1w.get_data( "CIT168_basal_forebrain_adni", target_extension='.nii.gz' ) )
-mybf2t1 = ants.apply_transforms( t1, mybf, concattx[2:4], interpolator='nearestNeighbor')
-ants.image_write( mybf2t1, re.sub( "brain_n4_dnz-SR" , "basalforebrain-SR" , t1fn)  )
-mybf = ants.apply_transforms( und, mybf, concattx, interpolator='nearestNeighbor')
 mybfstats = ants.label_stats( corrImg, mybf )
 ants.image_write( mybf, newprefix + 'basalforebrain.nii.gz' )
