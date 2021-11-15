@@ -76,7 +76,7 @@ t1wtx = re.sub('brain_n4_dnz-SR.nii.gz', 'SYNCC2CIT1681Warp.nii.gz', t1fn )
 t1seg = ants.image_read( re.sub('brain_n4_dnz-SR', 'tissuesegmentationSR',t1fn) )
 t1 = ants.image_read( t1fn )
 
-t1reg = ants.registration( und * bmask, t1, "SyN" ) # in practice use something different
+t1reg = ants.registration( und * bmask, t1, "SyNCC" ) # in practice use something different
 
 # get BF labels
 concattx =[]
