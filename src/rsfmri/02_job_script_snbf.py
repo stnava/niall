@@ -95,13 +95,14 @@ boldseg = ants.apply_transforms( und, t1seg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' ) * bmask
 gmseg = ants.threshold_image( t1seg, 2, 2 ).iMath("MD",1)
 gmseg = gmseg + ants.threshold_image( mybf2t1, 1, 4 )
+gmseg = ants.threshold_image( gmseg, 1, 10 )
 gmseg = ants.apply_transforms( und, gmseg,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
 csfAndWM = ( ants.threshold_image( t1seg, 1, 1 ) +
              ants.threshold_image( t1seg, 3, 3 ) ).morphology("erode",2)
 csfAndWM = ants.apply_transforms( und, csfAndWM,
   t1reg['fwdtransforms'], interpolator = 'nearestNeighbor' )  * bmask
-
+ants.image_write( gmseg, newprefix + 'gmseg.nii.gz' )
 dwpind = 0
 nc = 6
 mycompcor = ants.compcor( dwp['dewarped'][dwpind],
