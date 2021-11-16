@@ -49,7 +49,7 @@ if len( sys.argv ) > 1:
 targetfn = targetfns[ fileindex ]
 targetsplit = targetfn.split("/")
 
-istest=True
+istest=False
 if istest:
     targetfn = "/Users/stnava/data/PPMI2/temp/PPMI-53925-20210609-restingStatefMRI-I1490468-dcm2niix-V0.nii.gz"
 
