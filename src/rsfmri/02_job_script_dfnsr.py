@@ -87,4 +87,4 @@ for k in outkeys:
 
 import pandas as pd
 pd.DataFrame( myrsf['FD' ] ).to_csv( newprefix + "-" + "FD.csv" )
-
+myrsf['corr'].to_csv( newprefix + "-" + "crossnetworkcorrelations.csv" )

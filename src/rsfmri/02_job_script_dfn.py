@@ -80,8 +80,9 @@ else:
 
 t1 = ants.image_read( t1fn )
 t1seg = ants.image_read( t1sfn )
-
+print("begin: " + newprefix )
 myrsf = antspymm.resting_state_fmri_networks( img1, t1, t1seg )
+print("write: " + newprefix )
 outkeys = ['meanBold', 'CinguloopercularTaskControl', 'DefaultMode', 'MemoryRetrieval', 'VentralAttention', 'Visual', 'FrontoparietalTaskControl', 'Salience', 'Subcortical', 'DorsalAttention']
 
 for k in outkeys:
@@ -89,3 +90,5 @@ for k in outkeys:
 
 import pandas as pd
 pd.DataFrame( myrsf['FD' ] ).to_csv( newprefix + "-" + "FD.csv" )
+myrsf['corr'].to_csv( newprefix + "-" + "crossnetworkcorrelations.csv" )
+

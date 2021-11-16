@@ -68,20 +68,49 @@ dticrop = ants.crop_image( dti, ants.threshold_image( bstlabel, 1, 99999 ) )
 bstlabelcrop = ants.crop_image( bstlabel, ants.threshold_image( bstlabel, 1, 99999 ) )
 ants.plot( dticrop, bstlabelcrop, axis=2, overlay_alpha = 0.85, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True, crop=True, filename=outfn+'brainstemslices.png' )
 
-sys.exit(0)
+# do something for the DTI - if it exists
+wmL = ants.image_read( re.sub('brain_n4_dnz-SR.nii.gz', 'wm_tractsL.nii.gz', dtifn ) )
+wmR = ants.image_read( re.sub('brain_n4_dnz-SR.nii.gz', 'wm_tractsR.nii.gz', dtifn ) )
+# now get the real DTI fn# now get the real DTI fn# now get the real DTI fn
+mysplit = dtifn.split("/")
+myid = mysplit[6]
+mydate = mysplit[7]
+import antspyt1w
+realdtifnsL = glob.glob( "/mnt/cluster/data/PPMI2/PPMI/*/*/DTIJoinL/*/*" + myid + "-" + mydate + "*SRFA.nii.gz" )
+if len( realdtifnsL ) > 0 :
+    wmtoutfn = re.sub(  "SRFA.nii.gz" , "SRFAtractsLeft.csv"  , realdtifnsL[0]  )
+    faimg = ants.image_read( realdtifnsL[0] )
+    t1toFA = ants.registration( faimg, dti, "Rigid" )
+    t1toFA = ants.registration( faimg, dti, "SyNOnly", initial_transform=t1toFA['fwdtransforms'][0] )
+    trtoFA = ants.apply_transforms( faimg, wmL, t1toFA['fwdtransforms'], interpolator='genericLabel' )
+    antspyt1w.map_segmentation_to_dataframe( 'wm_major_tracts', trtoFA ).to_csv( wmtoutfn )
+    ants.image_write( trtoFA, re.sub(  "SRFA.nii.gz" , "SRFAtractsLeft.nii.gz"  , realdtifnsL[0]  ) )
+
+realdtifnsR = glob.glob( "/mnt/cluster/data/PPMI2/PPMI/*/*/DTIJoinR/*/*" + myid + "-" + mydate + "*SRFA.nii.gz" )
+if len( realdtifnsR ) > 0 :
+    wmtoutfn = re.sub(  "SRFA.nii.gz" , "SRFAtractsRight.csv"  , realdtifnsR[0]  )
+    faimg = ants.image_read( realdtifnsR[0] )
+    t1toFA = ants.registration( faimg, dti, "Rigid" )
+    t1toFA = ants.registration( faimg, dti, "SyNOnly", initial_transform=t1toFA['fwdtransforms'][0] )
+    trtoFA = ants.apply_transforms( faimg, wmL, t1toFA['fwdtransforms'], interpolator='genericLabel' )
+    antspyt1w.map_segmentation_to_dataframe( 'wm_major_tracts', trtoFA ).to_csv( wmtoutfn )
+    ants.image_write( trtoFA, re.sub(  "SRFA.nii.gz" , "SRFAtractsRight.nii.gz"  , realdtifnsR[0]  ) )
+
 # throw in some dkt for completeness
-import antspynet
-bfn = antspynet.get_antsxnet_data( "croppedMni152" )
-templateb = ants.image_read( bfn )
-templateb = ( templateb * antspynet.brain_extraction( templateb, 't1' ) ).iMath( "Normalize" )
-myparc = antspyt1w.deep_brain_parcellation( dti, templateb, do_cortical_propagation=True )
-dktfn = re.sub('brain_n4_dnz-SR.nii.gz', '', dtifn )
-ants.image_write( myparc['tissue_segmentation'] ,  dktfn + "tissuesegmentationSR.nii.gz" )
-antspyt1w.map_segmentation_to_dataframe( "tissues", myparc['tissue_segmentation'] ).to_csv( outfn + "tissuesegmentationSR.csv" )
-dktfn = re.sub('brain_n4_dnz-SR.nii.gz', 'DKT', dtifn )
-ants.image_write( myparc['dkt_parcellation'] ,  outfn + "DKTSR.nii.gz" )
-ants.image_write( myparc['dkt_cortex'] ,  outfn + "DKTcortexSR.nii.gz" )
-antspyt1w.map_segmentation_to_dataframe( "dkt", myparc['dkt_parcellation'] ).to_csv( outfn + "DKTSR.csv" )
-antspyt1w.map_segmentation_to_dataframe( "dkt", myparc['dkt_cortex'] ).to_csv( outfn + "DKTcortexSR.csv" )
+if not exists( outfn + "DKTcortexSR.nii.gz"  ) :
+    import antspynet
+    bfn = antspynet.get_antsxnet_data( "croppedMni152" )
+    templateb = ants.image_read( bfn )
+    templateb = ( templateb * antspynet.brain_extraction( templateb, 't1' ) ).iMath( "Normalize" )
+    myparc = antspyt1w.deep_brain_parcellation( dti, templateb, do_cortical_propagation=True )
+    dktfn = re.sub('brain_n4_dnz-SR.nii.gz', '', dtifn )
+    ants.image_write( myparc['tissue_segmentation'] ,  dktfn + "tissuesegmentationSR.nii.gz" )
+    antspyt1w.map_segmentation_to_dataframe( "tissues", myparc['tissue_segmentation'] ).to_csv( outfn + "tissuesegmentationSR.csv" )
+    dktfn = re.sub('brain_n4_dnz-SR.nii.gz', 'DKT', dtifn )
+    ants.image_write( myparc['dkt_parcellation'] ,  outfn + "DKTSR.nii.gz" )
+    ants.image_write( myparc['dkt_cortex'] ,  outfn + "DKTcortexSR.nii.gz" )
+    antspyt1w.map_segmentation_to_dataframe( "dkt", myparc['dkt_parcellation'] ).to_csv( outfn + "DKTSR.csv" )
+    antspyt1w.map_segmentation_to_dataframe( "dkt", myparc['dkt_cortex'] ).to_csv( outfn + "DKTcortexSR.csv" )
+
 print( outfn + " complete" )
 
