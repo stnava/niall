@@ -82,7 +82,10 @@ t1 = ants.image_read( t1fn )
 t1seg = ants.image_read( t1sfn )
 
 myrsf = antspymm.resting_state_fmri_networks( img1, t1, t1seg )
-outkeys = ['meanBold', 'Cingulo-opercularTaskControl', 'DefaultMode', 'MemoryRetrieval', 'VentralAttention', 'Visual', 'Fronto-parietalTaskControl', 'Salience', 'Subcortical', 'DorsalAttention']
+outkeys = ['meanBold', 'CinguloopercularTaskControl', 'DefaultMode', 'MemoryRetrieval', 'VentralAttention', 'Visual', 'FrontoparietalTaskControl', 'Salience', 'Subcortical', 'DorsalAttention']
 
 for k in outkeys:
     ants.image_write( myrsf[k], newprefix + "-" + k + ".nii.gz" )
+
+import pandas as pd
+pd.DataFrame( myrsf['FD' ] ).to_csv( newprefix + "-" + "FD.csv" )
