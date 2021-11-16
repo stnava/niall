@@ -1,8 +1,4 @@
 import os
-nth="12"
-os.environ["TF_NUM_INTEROP_THREADS"] = nth
-os.environ["TF_NUM_INTRAOP_THREADS"] = nth
-os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 import glob
 import sys
 import re
