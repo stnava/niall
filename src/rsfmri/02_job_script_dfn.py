@@ -53,9 +53,10 @@ istest=False
 if istest:
     targetfn = "/Users/stnava/data/PPMI2/temp/PPMI-53925-20210609-restingStatefMRI-I1490468-dcm2niix-V0.nii.gz"
 
+
 newoutdir = re.sub( modality, 'restingNetworks', pastetoid( targetfn ) )
 os.makedirs( newoutdir, exist_ok=True )
-newprefix = directory2prefix( newoutdir, 5, 10 )
+newprefix = directory2prefix( newoutdir, 6, 11 )
 img1 = ants.image_read( targetfn )
 
 ptidIndex=6
@@ -85,3 +86,4 @@ outkeys = ['meanBold', 'Cingulo-opercularTaskControl', 'DefaultMode', 'MemoryRet
 
 for k in outkeys:
     ants.image_write( myrsf[k], newprefix + k + ".nii.gz" )
+
