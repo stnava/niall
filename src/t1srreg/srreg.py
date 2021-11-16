@@ -42,14 +42,22 @@ if myoutfnexists:
     reg = { 'fwdtransforms': outfns }
 else:
     reg = ants.registration( dti, citatlas, mytx, outprefix=outfn )
+
+myinterp='genericLabel'
 # map det atlas to t1
-detlab = ants.apply_transforms( dti, detlabels, reg['fwdtransforms'], interpolator='nearestNeighbor' )
+detlab = ants.apply_transforms( dti, detlabels, reg['fwdtransforms'], interpolator=myinterp )
 ants.image_write( detlab,  outfn + "Labels.nii.gz" )
-bstlabel = ants.apply_transforms( dti, bstlabels, reg['fwdtransforms'], interpolator='nearestNeighbor' )
+bstlabel = ants.apply_transforms( dti, bstlabels, reg['fwdtransforms'], interpolator=myinterp )
 ants.image_write( bstlabel,  outfn + "BrainStemLabels.nii.gz" )
 mtslab = ants.image_read(  antspyt1w.get_data( "CIT168_MT_Slab_adni", target_extension=".nii.gz") )
-mtslab = ants.apply_transforms( dti, mtslab,  reg['fwdtransforms'], interpolator='nearestNeighbor' )
+mtslab = ants.apply_transforms( dti, mtslab,  reg['fwdtransforms'], interpolator=myinterp )
 ants.image_write( mtslab,  outfn + "MTSlabLabel.nii.gz" )
+
+bflab = ants.image_read( antspyt1w.get_data( "CIT168_basal_forebrain_adni", target_extension=".nii.gz") )
+bflab = ants.apply_transforms( dti, bflab, reg['fwdtransforms'], interpolator=myinterp )
+ants.image_write( bflab,  outfn + "basalforebrainbasic.nii.gz" )
+antspyt1w.map_segmentation_to_dataframe( "basal_forebrain", bflab ).to_csv( outfn + "basalforebrainbasic.csv" )
+
 # import pandas as pd
 # detdf=pd.read_csv( antspyt1w.get_data( "CIT168_Reinf_Learn_v1_label_descriptions_pad",  target_extension='.csv' ) )
 antspyt1w.map_segmentation_to_dataframe( "CIT168_Reinf_Learn_v1_label_descriptions_pad", detlab ).to_csv( outfn + "LabelStats.csv" )
@@ -60,6 +68,7 @@ dticrop = ants.crop_image( dti, ants.threshold_image( bstlabel, 1, 99999 ) )
 bstlabelcrop = ants.crop_image( bstlabel, ants.threshold_image( bstlabel, 1, 99999 ) )
 ants.plot( dticrop, bstlabelcrop, axis=2, overlay_alpha = 0.85, cbar=False, nslices = 24, ncol=8, cbar_length=0.3, cbar_vertical=True, crop=True, filename=outfn+'brainstemslices.png' )
 
+sys.exit(0)
 # throw in some dkt for completeness
 import antspynet
 bfn = antspynet.get_antsxnet_data( "croppedMni152" )
