@@ -83,7 +83,7 @@ if len( realdtifnsL ) > 0 :
     t1toFA = ants.registration( faimg, dti, "Rigid" )
     t1toFA = ants.registration( faimg, dti, "SyNOnly", initial_transform=t1toFA['fwdtransforms'][0] )
     trtoFA = ants.apply_transforms( faimg, wmL, t1toFA['fwdtransforms'], interpolator='genericLabel' )
-    antspyt1w.map_segmentation_to_dataframe( 'wm_major_tracts', trtoFA ).to_csv( wmtoutfn )
+    antspyt1w.map_intensity_to_dataframe( 'wm_major_tracts', faimg, trtoFA ).to_csv( wmtoutfn )
     ants.image_write( trtoFA, re.sub(  "SRFA.nii.gz" , "SRFAtractsLeft.nii.gz"  , realdtifnsL[0]  ) )
 
 realdtifnsR = glob.glob( "/mnt/cluster/data/PPMI2/PPMI/*/*/DTIJoinR/*/*" + myid + "-" + mydate + "*SRFA.nii.gz" )
@@ -93,7 +93,7 @@ if len( realdtifnsR ) > 0 :
     t1toFA = ants.registration( faimg, dti, "Rigid" )
     t1toFA = ants.registration( faimg, dti, "SyNOnly", initial_transform=t1toFA['fwdtransforms'][0] )
     trtoFA = ants.apply_transforms( faimg, wmL, t1toFA['fwdtransforms'], interpolator='genericLabel' )
-    antspyt1w.map_segmentation_to_dataframe( 'wm_major_tracts', trtoFA ).to_csv( wmtoutfn )
+    antspyt1w.map_intensity_to_dataframe( 'wm_major_tracts', faimg, trtoFA ).to_csv( wmtoutfn )
     ants.image_write( trtoFA, re.sub(  "SRFA.nii.gz" , "SRFAtractsRight.nii.gz"  , realdtifnsR[0]  ) )
 
 # throw in some dkt for completeness
@@ -113,4 +113,3 @@ if not exists( outfn + "DKTcortexSR.nii.gz"  ) :
     antspyt1w.map_segmentation_to_dataframe( "dkt", myparc['dkt_cortex'] ).to_csv( outfn + "DKTcortexSR.csv" )
 
 print( outfn + " complete" )
-
