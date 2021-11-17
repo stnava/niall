@@ -92,5 +92,7 @@ ants.image_write(mynm['NM_labels'], newprefix + "CIT168.nii.gz" )
 import antspyt1w
 summarydf = antspyt1w.map_segmentation_to_dataframe( 'CIT168_Reinf_Learn_v1_label_descriptions_pad', mynm['NM_labels'] )
 import pandas as pd
-summarydf.to_csv( newprefix + "CIT168.csv" )
+summarydf.to_csv( newprefix + "CIT168Volumes.csv" )
 
+summarydf = antspyt1w.map_intensity_to_dataframe( 'CIT168_Reinf_Learn_v1_label_descriptions_pad', mynm['NM_avg'], mynm['NM_labels'] )
+summarydf.to_csv( newprefix + "CIT168NMValues.csv" )
