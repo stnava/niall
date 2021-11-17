@@ -128,4 +128,4 @@ if not exists( outfn1 ):
         ants.image_write( ee[mykey],  newprefixList[1] + 'SR' + mykey + '.nii.gz' )
 
 
-print("complete: " + newprefixList[0] + " & " + newprefixList[2] )
+print("complete: " + newprefixList[0] + " & " + newprefixList[1] )
