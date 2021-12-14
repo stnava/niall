@@ -53,27 +53,22 @@ import antspyt1w
 # mdl = tf.keras.models.load_model( mdlfn )
 t1 = ants.image_read( t1fn )
 print("begin: " + newprefix )
-t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix )
+t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix, cit168=True )
 print("complete: " + newprefix )
 
 # write extant dataframes
 for myvar in t1h['dataframes'].keys():
     t1h['dataframes'][myvar].to_csv(newprefix + myvar + ".csv")
 
-mtlfn = os.path.expanduser( "~/.antspyt1w/mtl_description.csv" )
-if not exists( mtlfn ):
-    t1h['medial_temporal_lobe'][ 'mtl_description'].to_csv( mtlfn )
-mtldf = antspyt1w.map_segmentation_to_dataframe(
-    'mtl_description', t1h['medial_temporal_lobe'][ 'mtl_segmentation' ] )
-ants.image_write( t1h['medial_temporal_lobe'][ 'mtl_segmentation' ],
-    newprefix + "mtl.nii.gz" )
-(mtldf).to_csv( newprefix + "mtl.csv" )
 (t1h['rbp']).to_csv( newprefix + "rbp.csv" )
 myvarlist = [
     'brain_n4_dnz',
     'brain_extraction',
     'wm_tractsL',
     'wm_tractsR',
+    'bf',
+    'mtl',
+    'cit168lab',
     'left_right' ]
 for myvar in myvarlist:
     ants.image_write( t1h[myvar], newprefix + myvar + '.nii.gz' )
