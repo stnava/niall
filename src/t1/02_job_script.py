@@ -5,26 +5,20 @@ os.environ["TF_NUM_INTRAOP_THREADS"] = nth
 os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 from os.path import exists
 import glob
-rootdir = "/mnt/cluster/data/PPMI2/PPMI/"
-if not exists( rootdir ):
-    rootdir = "/Users/stnava/data/PPMI2/"
-    print("rootdir " + rootdir )
-
-t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
-if len(t1fns) == 0:
-    t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
+rootdir = "/Users/stnava/data/SRPBS_multidisorder_MRI/traveling_subjects/SRPBTravel/"
+t1fns = glob.glob( rootdir + "*/anat/*.nii.gz" )
 import sys
 fileindex = 0
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 t1fn = t1fns[ fileindex ]
 import re
-mysubbed = re.sub('T1w', 'T1wHierarchical', t1fn )
+mysubbed = re.sub('anat', 'T1wHierarchical', t1fn )
 mysubbedsplit = mysubbed.split("/")
 # define the directories and create them
 newoutdir = ''
 newprefix = ''
-keyindex = 10 # change for each case
+keyindex = 9 # change for each case
 for k in range(keyindex):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
     if k > 5:
