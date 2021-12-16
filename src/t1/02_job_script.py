@@ -1,5 +1,5 @@
 import os
-nth="24"
+nth="4"
 os.environ["TF_NUM_INTEROP_THREADS"] = nth
 os.environ["TF_NUM_INTRAOP_THREADS"] = nth
 os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
