@@ -1,33 +1,29 @@
 import os
-nth="4"
-os.environ["TF_NUM_INTEROP_THREADS"] = nth
-os.environ["TF_NUM_INTRAOP_THREADS"] = nth
-os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 from os.path import exists
 import glob
-rootdir = "/Users/stnava/data/SRPBS_multidisorder_MRI/traveling_subjects/SRPBTravel/"
-t1fns = glob.glob( rootdir + "*/anat/*.nii.gz" )
+rootdir = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/"
+t1fns = glob.glob( "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/*/*/t1weighted.nii.gz" )
 import sys
 fileindex = 0
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 t1fn = t1fns[ fileindex ]
 import re
-mysubbed = re.sub('anat', 'T1wHierarchical', t1fn )
+mysubbed = re.sub('t1weighted.nii.gz', 'T1wHierarchical', t1fn )
 mysubbedsplit = mysubbed.split("/")
 # define the directories and create them
 newoutdir = ''
-newprefix = ''
+mysep="_"
+newprefix = 'Mindboggle'+mysep
 keyindex = 9 # change for each case
 for k in range(keyindex):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
-    if k > 5:
-        newprefix = newprefix + mysubbedsplit[k] + '-'
+    if k > 6:
+        newprefix = newprefix + mysubbedsplit[k] + mysep
 newprefix = newoutdir + '/' + newprefix
 # create the directory
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
-
 if not myx:
     os.makedirs( newoutdir, exist_ok=True  )
 
