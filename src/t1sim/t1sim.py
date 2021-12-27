@@ -66,9 +66,10 @@ uu = antspynet.randomly_transform_image_data( refimg, ilist, slist,
     transform_type='scaleShear', sd_affine=0.05 )
 
 for k in range( nsim ):
-    print( "k" )
+    print( "k: " + str(k) )
     bmask = ants.threshold_image( uu['simulated_segmentation_images'][k], 1, 999 )
-    pt = ants.get_center_of_mass( bmask )
+    pt = list( ants.get_center_of_mass( bmask ) )
+    pt[1] = pt[1] + 10.0 
     temp = uu['simulated_images'][k][0]
     bias_field = antspynet.simulate_bias_field( temp, number_of_points=10,
         sd_bias_field=0.10, number_of_fitting_levels=4, mesh_size=1)
