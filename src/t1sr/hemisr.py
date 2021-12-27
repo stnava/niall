@@ -1,7 +1,7 @@
 import os
 import glob
 modality = "T1wHierarchical"
-dtifns = glob.glob( "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/*/*/T1wHierarchical/*T1wHierarchical*brain_n4_dnz.nii.gz" )
+dtifns = glob.glob( "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/*/*/T1wHierarchical/*T1wHierarchical_brain_n4_dnz.nii.gz" )
 import sys
 
 if len( sys.argv ) > 1:
