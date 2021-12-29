@@ -40,6 +40,8 @@ else:
 imgfn = dtifns[ fileindex ]
 print( imgfn )
 refimg = ants.image_read( antspyt1w.get_data( "CIT168_T1w_700um_pad_adni", target_extension='.nii.gz' ))
+refimg = ants.resample_image( refimg, [0.5,0.5,0.5] )
+refimgseg = ants.image_read( antspyt1w.get_data( "det_atlas_25_pad_LR_adni", target_extension='.nii.gz' ))
 refimgsmall = ants.resample_image( refimg, [2.5,2.5,2.5] )
 segfn = re.sub( "_brain_n4_dnz-SR.nii.gz", "_SRHIERcit168lab.nii.gz", imgfn)
 outipre = re.sub( ".nii.gz", "", imgfn)
@@ -49,13 +51,15 @@ sfnbase = re.sub( ".nii.gz", "",  os.path.basename( segfn ) )
 spre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated/"
 outipre = spre + ifnbase
 outspre = spre + sfnbase
+outppre = re.sub( "T1wHierarchical_SRHIERcit168lab", "T1wHierarchical_cit168priors", outspre )
 print(outipre)
 print(outspre)
+print(outppre)
 img = ants.image_read( imgfn )
 seg = ants.image_read( segfn )
-reg = ants.registration( refimgsmall, img, 'Rigid', verbose=False )
-img = ants.apply_transforms( refimg, img, reg['fwdtransforms'] )
-seg = ants.apply_transforms( refimg, seg, reg['fwdtransforms'], interpolator='genericLabel' )
+reg = ants.registration( refimgsmall, img, 'SyN', verbose=False )
+img = ants.apply_transforms( refimg, img, reg['fwdtransforms'][1] )
+seg = ants.apply_transforms( refimg, seg, reg['fwdtransforms'][1], interpolator='genericLabel' )
 
 ilist = list()
 ilist.append( [img] )
@@ -64,6 +68,8 @@ nsim = 64
 uu = antspynet.randomly_transform_image_data( refimg, ilist, slist,
     number_of_simulations = nsim,
     transform_type='scaleShear', sd_affine=0.05 )
+deftx  = ants.transform_from_displacement_field( ants.image_read( reg['fwdtransforms'][0] ) )
+deftxi = ants.transform_from_displacement_field( ants.image_read( reg['invtransforms'][1] ) )
 
 for k in range( nsim ):
     print( "k: " + str(k) )
@@ -74,9 +80,14 @@ for k in range( nsim ):
     bias_field = antspynet.simulate_bias_field( temp, number_of_points=10,
         sd_bias_field=0.10, number_of_fitting_levels=4, mesh_size=1)
     temp2 = temp * (bias_field + 1)
-    cimg = special_crop( temp2, pt, [128,128,96] )
-    cimgs = special_crop(  uu['simulated_segmentation_images'][k],  pt, [128,128,96] )
-    ants.plot( cimg, cimgs, axis=2, crop=False, nslices=21, ncol=7  )
+    cmptx = ants.compose_ants_transforms( [( uu['simulated_transforms'][k]), deftxi ] ) # good
+    priors = ants.apply_ants_transform_to_image( cmptx, refimgseg, temp2, interpolation='nearestneighbor')
+    # ants.label_overlap_measures( zz, uu['simulated_segmentation_images'][k] )
+    dmn = [160,160,112]
+    cimg = special_crop( temp2, pt, dmn )
+    cimgs = special_crop(  uu['simulated_segmentation_images'][k],  pt, dmn )
+    pimg = special_crop( priors,  pt, dmn )
+    # ants.plot( cimg, cimgs, axis=2, crop=False, nslices=21, ncol=7  )
     centroids = ants.label_image_centroids( cimgs, cimgs )
     mydf = pd.DataFrame({"Label":centroids['labels'],
         "x":centroids['vertices'][:,0],
@@ -85,6 +96,10 @@ for k in range( nsim ):
     mydf.to_csv( outspre + "_sim_" + str(k) + "points.csv" )
     ants.image_write( cimgs, outspre + "_sim_" + str(k) + ".nii.gz"  )
     ants.image_write( cimg, outipre + "_sim_" + str(k) + ".nii.gz"  )
+    ants.image_write( pimg, outppre + "_sim_" + str(k) + ".nii.gz"  )
+    print( outspre + "_sim_" + str(k) + ".nii.gz" )
+    print( outipre + "_sim_" + str(k) + ".nii.gz"  )
+    print( outppre + "_sim_" + str(k) + ".nii.gz"  )
 
 print("done")
 
