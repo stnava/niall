@@ -45,7 +45,7 @@ def batch_generator(
     Y = np.zeros( (batch_size, *(image_size) ) )
     Ypr = np.zeros( (batch_size, *(image_size) ) )
     npts = len( group_labels_in ) - 1
-    npts = 34
+    # npts = 34
     Ypts = np.zeros( ( batch_size,  npts, 3 ) )
     batch_count = 0
     print("BeginBatch")
@@ -55,9 +55,9 @@ def batch_generator(
         mycc = coordinate_images( t1 * 0 + 1 )
         zz=pd.read_csv( pt_fns[i] )
         mypr = ants.image_read( pr_fns[i] )
-        mypr = ants.mask_image( mypr, mypr, group_labels_in, binarize=False )
+        # mypr = ants.mask_image( mypr, mypr, group_labels_in, binarize=False )
         seg = ants.image_read(segmentation_filenames[i])
-        seg = ants.mask_image( seg, seg, group_labels_in, binarize=False )
+        # seg = ants.mask_image( seg, seg, group_labels_in, binarize=False )
         X[batch_count,:,:,:,0] = t1.numpy()
         Xcc[batch_count,:,:,:,0] = mycc[0].numpy()
         Xcc[batch_count,:,:,:,1] = mycc[1].numpy()
@@ -108,15 +108,18 @@ outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpy/MB_" + 
 print( outpre )
 
 seg = ants.image_read( seg_fns[0] )
-# group_labels = np.unique(seg.numpy()).astype(int)
+group_labels = np.unique(seg.numpy()).astype(int)
 ###
 #
 # Set up the training generator
 #
 
-batch_size = 4
-generator = batch_generator( t1_fns, seg_fns, image_size=image_size,
-    batch_size = batch_size, group_labels_in=group_1_labels )
+batch_size = 64
+generator = batch_generator( t1_fns, 
+        seg_fns, 
+        image_size=image_size, 
+        batch_size = batch_size, 
+        group_labels_in=group_labels )
 
 np.save( outpre + "_Ximages.npy", generator[0] )
 np.save( outpre + "_Xcc.npy", generator[1] )
