@@ -2,16 +2,19 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import glob
 import numpy as np
+import sys
 import random
+if len( sys.argv ) == 1:
+    rseed=0
+else:
+    rseed = int(sys.argv[1])
+random.seed( rseed )
 import ants
 import antspynet
 import re
 import pandas as pd
-from tensorflow.keras.layers import Conv3D
-from tensorflow.keras.models import Model
-from tensorflow.keras import regularizers
-
 import tensorflow as tf
+tf.random.set_seed( rseed )
 import tensorflow.keras as keras
 import tensorflow.keras.backend as K
 K.set_floatx("float32")
@@ -42,6 +45,7 @@ def batch_generator(
     Y = np.zeros( (batch_size, *(image_size) ) )
     Ypr = np.zeros( (batch_size, *(image_size) ) )
     npts = len( group_labels_in ) - 1
+    npts = 34
     Ypts = np.zeros( ( batch_size,  npts, 3 ) )
     batch_count = 0
     print("BeginBatch")
@@ -51,7 +55,9 @@ def batch_generator(
         mycc = coordinate_images( t1 * 0 + 1 )
         zz=pd.read_csv( pt_fns[i] )
         mypr = ants.image_read( pr_fns[i] )
+        mypr = ants.mask_image( mypr, mypr, group_labels_in, binarize=False )
         seg = ants.image_read(segmentation_filenames[i])
+        seg = ants.mask_image( seg, seg, group_labels_in, binarize=False )
         X[batch_count,:,:,:,0] = t1.numpy()
         Xcc[batch_count,:,:,:,0] = mycc[0].numpy()
         Xcc[batch_count,:,:,:,1] = mycc[1].numpy()
@@ -65,12 +71,11 @@ def batch_generator(
         if batch_count >= batch_size:
                 break
 
-    encY = antspynet.encode_unet(Y.astype('int'), group_labels_in )
-    encYpr = antspynet.encode_unet(Ypr.astype('int'), group_labels_in[1:len(group_labels_in)] )
-    return X, Xcc, Y, encY, Ypts, encYpr
+    # encY = antspynet.encode_unet(Y.astype('int'), group_labels_in )
+    # encYpr = antspynet.encode_unet(Ypr.astype('int'), group_labels_in[1:len(group_labels_in)] )
+    return X, Xcc, Y, Ypts, Ypr
 
 data_directory = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated/"
-
 exfn = "Mindboggle_Afterthought-1_T1wHierarchical_brain_n4_dnz-SR_sim_11.nii.gz"
 eximg = ants.image_read( data_directory + exfn )
 group_1_labels = [0,1,2,5,6,17,18,21,22]
@@ -94,32 +99,30 @@ for k in range(len(t1_fns)):
     pt_fns[k] = re.sub( ".nii.gz", "points.csv", pt_fns[k] )
 
 print("Total training image files: ", len(t1_fns))
+import random, string
+def randword(length):
+   letters = string.ascii_lowercase
+   return ''.join(random.choice(letters) for i in range(length))
+randstring = randword( 8 )
+outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpy/MB_" + randstring
+print( outpre )
 
-print( "Training")
-group_labels = np.unique(seg.numpy()).astype(int)
+seg = ants.image_read( seg_fns[0] )
+# group_labels = np.unique(seg.numpy()).astype(int)
 ###
 #
 # Set up the training generator
 #
 
-batch_size = 64
+batch_size = 4
 generator = batch_generator( t1_fns, seg_fns, image_size=image_size,
-    batch_size = batch_size, group_labels_in=group_labels)
+    batch_size = batch_size, group_labels_in=group_1_labels )
 
-import random, string
-
-def randword(length):
-   letters = string.ascii_lowercase
-   return ''.join(random.choice(letters) for i in range(length))
-
-randstring = randword( 8 )
-outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpy/MB_" + randstring
-print( outpre )
 np.save( outpre + "_Ximages.npy", generator[0] )
 np.save( outpre + "_Xcc.npy", generator[1] )
 np.save( outpre + "_Y.npy", generator[2] )
-np.save( outpre + "_Y1hot.npy", generator[3] )
-np.save( outpre + "_Ypts.npy", generator[4] )
-np.save( outpre + "_Xprior.npy", generator[5])
+# np.save( outpre + "_Y1hot.npy", generator[3] )
+np.save( outpre + "_Ypts.npy", generator[3] )
+np.save( outpre + "_Xprior.npy", generator[4])
 
 
