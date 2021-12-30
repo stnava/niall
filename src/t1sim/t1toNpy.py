@@ -100,6 +100,7 @@ def batch_generator(
         # ants.image_read( pr_fns[i] )
         # mypr = ants.mask_image( mypr, mypr, group_labels_in, binarize=False )
         seg = ants.image_read(segmentation_filenames[i])
+        seg = ants.apply_transforms( nbmtemplate, seg, orireg['fwdtransforms'][1], interpolator='nearestNeighbor' )
         centroids = ants.label_image_centroids( seg, seg )
         mydf = pd.DataFrame({"Label":centroids['labels'],
           "x":centroids['vertices'][:,0],
@@ -172,7 +173,7 @@ group_labels = np.unique(seg.numpy()).astype(int)
 # Set up the training generator
 #
 
-batch_size = 16
+batch_size = 32
 generator = batch_generator( t1_fns, 
         seg_fns, 
         image_size=image_size, 
