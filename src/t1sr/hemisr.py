@@ -32,7 +32,7 @@ mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
 # mdl = tf.keras.models.load_model( mdlfn )
 dti = ants.image_read( dtifn )
 hemi = ants.image_read( hemifn )
-mysr = superiq.super_resolution_segmentation_per_label( dti, hemi, [2,2,2], mdlfn, [1,2], dilation_amount=6, probability_images=None, probability_labels=None, max_lab_plus_one=True, verbose=True )
+mysr = superiq.super_resolution_segmentation_per_label( dti, hemi, [2,2,2], mdlfn, [1,2], dilation_amount=0, probability_images=None, probability_labels=None, max_lab_plus_one=False, verbose=True )
 
 ants.image_write( mysr['super_resolution'], outfn )
 
