@@ -54,6 +54,8 @@ import ants
 import antspynet
 import antspymm
 import tensorflow as tf
+import tensorflow.keras.backend as K
+K.set_floatx("float32")
 import antspyt1w
 import superiq
 t1 = ants.image_read( t1fn )
