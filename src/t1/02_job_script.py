@@ -64,7 +64,6 @@ import superiq
 t1 = ants.image_read( t1fn )
 if dosr:
     print("begin: " + newprefix +  " dosr " + str( dosr ) )
-    newprefix = newprefix + "-SR"
     print("first a bxt ")
     t1 = ants.iMath( t1, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
     t1bxt = antspyt1w.brain_extraction( t1 )
@@ -76,6 +75,9 @@ if dosr:
     templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
     templatealr = ants.image_read( tlrfn )
     t1crop = ants.crop_image( t1 * t1bxt, ants.iMath(  t1bxt, "MD", 6 ) )
+    t1crop = ants.iMath( t1crop, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
+    ants.image_write( t1crop, newprefix + "-brain_n4_dnz.nii.gz" )
+    newprefix = newprefix + "-SR"
     print( "t1crop" )
     print( t1crop )
     mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
