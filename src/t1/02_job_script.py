@@ -72,7 +72,7 @@ if dosr:
     templatea = ants.image_read( tfn )
     templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
     templatealr = ants.image_read( tlrfn )
-    t1crop = ants.crop_image( t1 * t1bxt, ants.iMath(  t1bxt, "6"  ) )
+    t1crop = ants.crop_image( t1 * t1bxt, ants.iMath(  t1bxt, "MD", 6 ) )
     print( "t1crop" )
     print( t1crop )
     mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
