@@ -68,7 +68,7 @@ if dosr:
     mdl = tf.keras.models.load_model( mdlfn )
     mysr = superiq.super_resolution_segmentation_per_label(
         t1, t1bxt, [2,2,2], mdl, [1], dilation_amount=6, probability_images=None,
-        probability_labels=None, max_lab_plus_one=True, verbose=True )
+        probability_labels=None, max_lab_plus_one=False, verbose=True )
     t1 = mysr['super_resolution']
     t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
     ants.image_write( t1, newprefix + ".nii.gz" )
