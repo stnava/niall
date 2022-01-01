@@ -15,12 +15,15 @@ t1fns = t1fns + glob.glob( rootdir + "PPMI1/*/*/*/*/*nii.gz" )
 
 import sys
 fileindex = 0
+myoffset = 0
 dosr = True
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 if len( sys.argv ) > 2:
     dosr = eval(sys.argv[2])
-t1fn = t1fns[ fileindex ]
+if len( sys.argv ) > 3:
+    myoffset = int(sys.argv[3])
+t1fn = t1fns[ fileindex + myoffset]
 import re
 mysubbed = re.sub('T1w', 'T1wHierarchical', t1fn )
 mysubbed = re.sub('MRI_T1', 'T1wHierarchical', mysubbed )
