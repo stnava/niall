@@ -1,5 +1,5 @@
 import os
-nth="12"
+nth="96"
 os.environ["TF_NUM_INTEROP_THREADS"] = nth
 os.environ["TF_NUM_INTRAOP_THREADS"] = nth
 os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
@@ -14,8 +14,11 @@ t1fns = glob.glob( rootdir + "PPMI2/PPMI/*/*/T1w/*/dcm2niix/V0/*-dcm2niix-V0.nii
 t1fns = t1fns + glob.glob( rootdir + "PPMI1/*/*/*/*/*nii.gz" )
 import sys
 fileindex = 0
+dosr = True
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
+if len( sys.argv ) > 2:
+    dosr = eval(sys.argv[2])
 t1fn = t1fns[ fileindex ]
 import re
 mysubbed = re.sub('T1w', 'T1wHierarchical', t1fn )
@@ -52,12 +55,13 @@ import tensorflow as tf
 import antspyt1w
 import superiq
 t1 = ants.image_read( t1fn )
-print("begin: " + newprefix )
-dosr = True
+print("begin: " + newprefix +  " dosr " + str( dosr ) )
 if dosr:
     print("first a bxt ")
     t1 = ants.iMath( t1, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
     t1bxt = antspyt1w.brain_extraction( t1 )
+    t1 = ants.denoise_image( t1, t1bxt, noise_model='Gaussian')
+    t1 = ants.n4_bias_field_correction( t1, mask=t1bxt, rescale_intensities=True, ).iMath("Normalize")
     print("second is SR")
     mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
     mdl = tf.keras.models.load_model( mdlfn )
@@ -65,11 +69,16 @@ if dosr:
         t1, t1bxt, [2,2,2], mdl, [1], dilation_amount=6, probability_images=None,
         probability_labels=None, max_lab_plus_one=True, verbose=True )
     t1 = mysr['super_resolution']
+    t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
     newprefix = newprefix + "-SR"
     ants.image_write( t1, newprefix + ".nii.gz" )
+    print("begin hier: " + newprefix )
+    derka
+    t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix, imgbxt=t1bxt, cit168=True )
+else:
+    print("begin hier: " + newprefix )
+    t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix, cit168=True )
 
-print("begin hier: " + newprefix )
-t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix, cit168=True )
 print("complete: " + newprefix )
 
 # write extant dataframes
