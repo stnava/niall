@@ -63,6 +63,13 @@ if dosr:
     t1bxt = antspyt1w.brain_extraction( t1 )
     t1 = ants.denoise_image( t1, t1bxt, noise_model='Gaussian')
     t1 = ants.n4_bias_field_correction( t1, mask=t1bxt, rescale_intensities=True, ).iMath("Normalize")
+    tfn = antspyt1w.get_data('T_template0', target_extension='.nii.gz' )
+    tlrfn = antspyt1w.get_data('T_template0_LR', target_extension='.nii.gz' )
+    templatea = ants.image_read( tfn )
+    templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
+    templatealr = ants.image_read( tlrfn )
+    mylr = label_hemispheres( img, templatea, templatealr )
+    derk
     print("second is SR")
     mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
     mdl = tf.keras.models.load_model( mdlfn )
