@@ -1,18 +1,17 @@
 import os
-nth="24"
+nth="12"
 os.environ["TF_NUM_INTEROP_THREADS"] = nth
 os.environ["TF_NUM_INTRAOP_THREADS"] = nth
 os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 from os.path import exists
 import glob
-rootdir = "/mnt/cluster/data/PPMI2/PPMI/"
+rootdir = "/mnt/cluster/data/"
 if not exists( rootdir ):
     rootdir = "/Users/stnava/data/PPMI2/"
     print("rootdir " + rootdir )
 
-t1fns = glob.glob( rootdir + "*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
-if len(t1fns) == 0:
-    t1fns = glob.glob( rootdir + "*/*/*/*/*/dcm2niix/V0/*T1*dcm2niix-V0.nii.gz" )
+t1fns = glob.glob( rootdir + "PPMI2/PPMI/*/*/T1w/*/dcm2niix/V0/*-dcm2niix-V0.nii.gz" )
+t1fns = t1fns + glob.glob( rootdir + "PPMI1/*/*/*/*/*nii.gz" )
 import sys
 fileindex = 0
 if len( sys.argv ) > 1:
@@ -20,16 +19,18 @@ if len( sys.argv ) > 1:
 t1fn = t1fns[ fileindex ]
 import re
 mysubbed = re.sub('T1w', 'T1wHierarchical', t1fn )
+mysubbed = re.sub('MRI_T1', 'T1wHierarchical', mysubbed )
+mysubbed = re.sub('/mnt/cluster/data/PPMI2/PPMI/', '/mnt/cluster/data/PPMIPostJoin/', mysubbed )
+mysubbed = re.sub('/mnt/cluster/data/PPMI1/', '/mnt/cluster/data/PPMIPostJoin/', mysubbed )
+mysubbed = re.sub('dcm2niix/V0', '', mysubbed )
+mysubbed = re.sub('-dcm2niix-V0', '', mysubbed )
+newprefix = re.sub('.nii.gz','',mysubbed)
 mysubbedsplit = mysubbed.split("/")
 # define the directories and create them
 newoutdir = ''
-newprefix = ''
-keyindex = 10 # change for each case
-for k in range(keyindex):
+for k in range(len(mysubbedsplit)-1):
     newoutdir = newoutdir + '/' + mysubbedsplit[k]
-    if k > 5:
-        newprefix = newprefix + mysubbedsplit[k] + '-'
-newprefix = newoutdir + '/' + newprefix
+
 # create the directory
 myx = os.path.isdir( newoutdir )
 print( "make " +  newoutdir + " " + str( myx ) )
@@ -49,18 +50,35 @@ import ants
 import antspymm
 import tensorflow as tf
 import antspyt1w
-# mdlfn = antspymm.get_data( "brainSR", target_extension=".h5")
-# mdl = tf.keras.models.load_model( mdlfn )
+import superiq
 t1 = ants.image_read( t1fn )
 print("begin: " + newprefix )
+dosr = True
+if dosr:
+    print("first a bxt ")
+    t1 = ants.iMath( t1, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
+    t1bxt = antspyt1w.brain_extraction( t1 )
+    print("second is SR")
+    mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
+    mdl = tf.keras.models.load_model( mdlfn )
+    mysr = superiq.super_resolution_segmentation_per_label(
+        t1, t1bxt, [2,2,2], mdl, [1], dilation_amount=6, probability_images=None,
+        probability_labels=None, max_lab_plus_one=True, verbose=True )
+    t1 = mysr['super_resolution']
+    newprefix = newprefix + "-SR"
+    ants.image_write( t1, newprefix + ".nii.gz" )
+
+print("begin hier: " + newprefix )
 t1h = antspyt1w.hierarchical( t1, output_prefix=newprefix, cit168=True )
 print("complete: " + newprefix )
 
 # write extant dataframes
 for myvar in t1h['dataframes'].keys():
-    t1h['dataframes'][myvar].to_csv(newprefix + myvar + ".csv")
+    if t1h['dataframes'][myvar] is not None:
+        t1h['dataframes'][myvar].dropna(0).to_csv(newprefix + myvar + ".csv")
 
 (t1h['rbp']).to_csv( newprefix + "rbp.csv" )
+
 myvarlist = [
     'brain_n4_dnz',
     'brain_extraction',
@@ -68,10 +86,13 @@ myvarlist = [
     'wm_tractsR',
     'bf',
     'mtl',
+    'snseg',
+    'deep_cit168lab',
     'cit168lab',
     'left_right' ]
 for myvar in myvarlist:
-    ants.image_write( t1h[myvar], newprefix + myvar + '.nii.gz' )
+    if t1h[myvar] is not None:
+        ants.image_write( t1h[myvar], newprefix + myvar + '.nii.gz' )
 
 myvarlist = [
     'tissue_segmentation',
@@ -84,3 +105,5 @@ for myvar in myvarlist:
 
 ants.image_write( t1h['hippLR']['HLBin'], newprefix + "hippL" + '.nii.gz' )
 ants.image_write( t1h['hippLR']['HRBin'], newprefix + "hippR" + '.nii.gz' )
+
+# SR
