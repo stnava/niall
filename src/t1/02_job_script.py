@@ -70,12 +70,15 @@ if dosr:
     templatea = ants.image_read( tfn )
     templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
     templatealr = ants.image_read( tlrfn )
-    mylr = antspyt1w.label_hemispheres( t1 * t1bxt, templatea, templatealr )
+    t1crop = ants.crop_image( t1 * t1bxt, ants.iMath(  t1bxt, "6"  ) )
+    print( "t1crop" )
+    print( t1crop )
+    mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
     print("second is SR")
     mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
     mdl = tf.keras.models.load_model( mdlfn )
     mysr = superiq.super_resolution_segmentation_per_label(
-        t1, mylr, [2,2,2], mdl, [1,2], dilation_amount=0, probability_images=None,
+        t1crop, mylr, [2,2,2], mdl, [1,2], dilation_amount=0, probability_images=None,
         probability_labels=None, max_lab_plus_one=False, verbose=True )
     t1 = mysr['super_resolution']
     t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
