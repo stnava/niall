@@ -55,8 +55,9 @@ import tensorflow as tf
 import antspyt1w
 import superiq
 t1 = ants.image_read( t1fn )
-print("begin: " + newprefix +  " dosr " + str( dosr ) )
 if dosr:
+    print("begin: " + newprefix +  " dosr " + str( dosr ) )
+    newprefix = newprefix + "-SR"
     print("first a bxt ")
     t1 = ants.iMath( t1, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
     t1bxt = antspyt1w.brain_extraction( t1 )
@@ -70,7 +71,6 @@ if dosr:
         probability_labels=None, max_lab_plus_one=True, verbose=True )
     t1 = mysr['super_resolution']
     t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
-    newprefix = newprefix + "-SR"
     ants.image_write( t1, newprefix + ".nii.gz" )
     print("begin hier: " + newprefix )
     derka
