@@ -116,8 +116,10 @@ myvarlist = [
     'deep_cit168lab',
     'cit168lab',
     'left_right' ]
+myvarlist = t1h.keys()
+r16img = ants.image_read( ants.get_data( "r16" ))
 for myvar in myvarlist:
-    if t1h[myvar] is not None:
+    if t1h[myvar] is not None and type(t1h[myvar]) == type( r16img ):
         ants.image_write( t1h[myvar], newprefix + myvar + '.nii.gz' )
 
 myvarlist = [
@@ -128,8 +130,3 @@ myvarlist = [
     'hemisphere_labels' ]
 for myvar in myvarlist:
     ants.image_write( t1h['dkt_parc'][myvar], newprefix + myvar + '.nii.gz' )
-
-ants.image_write( t1h['hippLR']['HLBin'], newprefix + "hippL" + '.nii.gz' )
-ants.image_write( t1h['hippLR']['HRBin'], newprefix + "hippR" + '.nii.gz' )
-
-# SR
