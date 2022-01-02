@@ -25,10 +25,14 @@ if len( sys.argv ) > 3:
     myoffset = int(sys.argv[3])
 t1fn = t1fns[ fileindex + myoffset]
 import re
-mysubbed = re.sub('T1w', 'T1wHierarchical', t1fn )
-mysubbed = re.sub('MRI_T1', 'T1wHierarchical', mysubbed )
-mysubbed = re.sub('/mnt/cluster/data/PPMI2/PPMI/', '/mnt/cluster/data/PPMIPostJoin/', mysubbed )
-mysubbed = re.sub('/mnt/cluster/data/PPMI1/', '/mnt/cluster/data/PPMIPostJoin/', mysubbed )
+if not dosr:
+    middir = 'T1wHierarchical'
+else:
+    middir = 'T1wSRHierarchical'
+mysubbed = re.sub('T1w', middir, t1fn )
+mysubbed = re.sub('MRI_T1', middir, mysubbed )
+mysubbed = re.sub('/mnt/cluster/data/PPMI2/PPMI/', '/mnt/cluster/data/T1wJoin/PPMI/', mysubbed )
+mysubbed = re.sub('/mnt/cluster/data/PPMI1/', '/mnt/cluster/data/T1wJoin/PPMI/', mysubbed )
 mysubbed = re.sub('dcm2niix/V0', '', mysubbed )
 mysubbed = re.sub('-dcm2niix-V0', '', mysubbed )
 newprefix = re.sub('.nii.gz','',mysubbed)
@@ -46,7 +50,11 @@ if not myx:
     os.makedirs( newoutdir, exist_ok=True  )
 
 print( "made " +  newoutdir + " successfully " )
-outfn = newprefix + "hippR" + '.nii.gz'
+if not dosr:
+    outfn = newprefix + "hippLR" + '.nii.gz'
+else:
+    outfn = newprefix + "-SR" + "hippLR" + '.nii.gz'
+
 myoutfnexists = exists( outfn )
 if myoutfnexists:
     print( outfn + "exists already" )
@@ -129,4 +137,5 @@ myvarlist = [
     'dkt_cortex',
     'hemisphere_labels' ]
 for myvar in myvarlist:
-    ants.image_write( t1h['dkt_parc'][myvar], newprefix + myvar + '.nii.gz' )
+    if t1h['dkt_parc'][myvar] is not None:
+        ants.image_write( t1h['dkt_parc'][myvar], newprefix + myvar + '.nii.gz' )
