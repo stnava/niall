@@ -37,7 +37,7 @@ bxtsylelist = ['v0','v1']
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
     print("begin: " + srfnout  )
-    t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle )
+    t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
     t1 = t1 * t1bxt
     t1 = antspyt1w.preprocess_intensity( t1, t1bxt )
     tfn = antspyt1w.get_data('T_template0', target_extension='.nii.gz' )
