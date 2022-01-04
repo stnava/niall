@@ -45,7 +45,6 @@ for bxtstyle in bxtsylelist:
     t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
     t1 = antspyt1w.preprocess_intensity( t1, t1bxt )
     t1crop = ants.crop_image( t1, ants.iMath(  t1bxt, "MD", 6 ) )
-    t1crop = ants.iMath( t1crop, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
     ants.image_write( t1crop, srfnout + "brain_n4_dnz.nii.gz" )
     print( "t1crop" )
     print( t1crop )
