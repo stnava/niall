@@ -32,21 +32,21 @@ import tensorflow.keras.backend as K
 K.set_floatx("float32")
 import antspyt1w
 import superiq
-t1 = ants.image_read( t1fn )
+tfn = antspyt1w.get_data('T_template0', target_extension='.nii.gz' )
+tlrfn = antspyt1w.get_data('T_template0_LR', target_extension='.nii.gz' )
+templatea = ants.image_read( tfn )
+templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
+templatealr = ants.image_read( tlrfn )
 bxtsylelist = ['v0','v1']
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
     print("begin: " + srfnout  )
+    t1 = ants.image_read( t1fn )
     t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
     t1 = antspyt1w.preprocess_intensity( t1, t1bxt )
-    tfn = antspyt1w.get_data('T_template0', target_extension='.nii.gz' )
-    tlrfn = antspyt1w.get_data('T_template0_LR', target_extension='.nii.gz' )
-    templatea = ants.image_read( tfn )
-    templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
-    templatealr = ants.image_read( tlrfn )
     t1crop = ants.crop_image( t1, ants.iMath(  t1bxt, "MD", 6 ) )
     t1crop = ants.iMath( t1crop, "TruncateIntensity", 1e-4, 0.999 ).iMath( "Normalize" )
-    ants.image_write( t1crop, newprefix + "brain_n4_dnz.nii.gz" )
+    ants.image_write( t1crop, srfnout + "brain_n4_dnz.nii.gz" )
     print( "t1crop" )
     print( t1crop )
     mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
@@ -58,9 +58,10 @@ for bxtstyle in bxtsylelist:
             probability_labels=None, max_lab_plus_one=False, verbose=True )
     t1 = mysr['super_resolution']
     t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
-    ants.image_write( t1, newprefix + ".nii.gz" )
-    ants.image_write( t1bxt, newprefix + "brain_extraction.nii.gz" )
-    print("begin hier: " + newprefix )
+    srfnout = srfnout + "SR"
+    ants.image_write( t1, srfnout + ".nii.gz" )
+    ants.image_write( t1bxt, srfnout + "brain_extraction.nii.gz" )
+    print("begin hier: " + srfnout )
     t1h = antspyt1w.hierarchical( t1, output_prefix=srfnout, imgbxt=t1bxt, cit168=True )
-    antspyt1w.write_hierarchical( t1h, output_prefix=newprefix )
+    antspyt1w.write_hierarchical( t1h, output_prefix=srfnout )
     print("complete: " + srfnout )
