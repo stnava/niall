@@ -37,13 +37,15 @@ tlrfn = antspyt1w.get_data('T_template0_LR', target_extension='.nii.gz' )
 templatea = ants.image_read( tfn )
 templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
 templatealr = ants.image_read( tlrfn )
-bxtsylelist = ['v0','v1','v2']
+bxtsylelist = ['v0','v1','v2','v3']
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
     print("begin: " + srfnout  )
     t1 = ants.image_read( t1fn )
     t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
     t1 = antspyt1w.preprocess_intensity( t1, t1bxt )
+    if bxtstyle == "v3":
+        t1 = ants.rank_intensity( t1 )
     t1crop = ants.crop_image( t1, ants.iMath(  t1bxt, "MD", 6 ) )
     ants.image_write( t1crop, srfnout + "brain_n4_dnz.nii.gz" )
     print( "t1crop" )
