@@ -33,7 +33,7 @@ K.set_floatx("float32")
 import antspyt1w
 import superiq
 t1 = ants.image_read( t1fn )
-bxtsylelist = ['v0','v0']
+bxtsylelist = ['v0','v1']
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
     print("begin: " + srfnout  )
