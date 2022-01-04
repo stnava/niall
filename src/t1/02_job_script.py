@@ -37,7 +37,7 @@ tlrfn = antspyt1w.get_data('T_template0_LR', target_extension='.nii.gz' )
 templatea = ants.image_read( tfn )
 templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
 templatealr = ants.image_read( tlrfn )
-bxtsylelist = ['v0','v1']
+bxtsylelist = ['v0','v1','v2']
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
     print("begin: " + srfnout  )
@@ -64,4 +64,8 @@ for bxtstyle in bxtsylelist:
     print("begin hier: " + srfnout )
     t1h = antspyt1w.hierarchical( t1, output_prefix=srfnout, imgbxt=t1bxt, cit168=True )
     antspyt1w.write_hierarchical( t1h, output_prefix=srfnout )
+    uid = os.path.basename(srfnout)
+    uid = re.sub(".nii.gz","",uid)
+    outdf = antspyt1w.merge_hierarchical_csvs_to_wide_format( t1h['dataframes'], identifier=uid )
+    outdf.to_csv( srfnout + "_mergewide.csv" )
     print("complete: " + srfnout )
