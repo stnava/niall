@@ -1,10 +1,7 @@
 import os
-nth="96"
-os.environ["TF_NUM_INTEROP_THREADS"] = nth
-os.environ["TF_NUM_INTRAOP_THREADS"] = nth
-os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = nth
 from os.path import exists
 import glob
+import numpy as np
 rootdir = "/mnt/cluster/data/"
 if not exists( rootdir ):
     rootdir = "/Users/stnava/data/PPMI2/"
@@ -14,8 +11,12 @@ t1fns = glob.glob( rootdir + "PPMI2/PPMI/*/*/T1w/*/dcm2niix/V0/*-dcm2niix-V0.nii
 t1fns = t1fns + glob.glob( rootdir + "PPMI1/*/*/*/*/*nii.gz" )
 
 import sys
-fileindex = 0
-myoffset = 0
+
+fileindex=743
+myoffset=0
+fileindex = 985
+myoffset = 1000
+
 dosr = True
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
@@ -24,6 +25,7 @@ if len( sys.argv ) > 2:
 if len( sys.argv ) > 3:
     myoffset = int(sys.argv[3])
 t1fn = t1fns[ fileindex + myoffset]
+print( "target: " + t1fn + "  " + str(myoffset) + " " + str( fileindex ) )
 import re
 if not dosr:
     middir = 'T1wHierarchical'
@@ -51,7 +53,6 @@ if not myx:
 
 print( "made " +  newoutdir + " successfully " )
 
-
 print( "RUN " +  newprefix  + " " )
 import ants
 import antspynet
@@ -66,30 +67,48 @@ tlrfn = antspyt1w.get_data('T_template0_LR', target_extension='.nii.gz' )
 templatea = ants.image_read( tfn )
 templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
 templatealr = ants.image_read( tlrfn )
-bxtsylelist = ['v1']
+bxtsylelist = [ 'v1', 'v2', 'v3' ]
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
     if not exists( srfnout + "SR_mergewide.csv" ):
         print("begin: " + srfnout  )
         t1 = ants.image_read( t1fn )
-        t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
-        t1 = antspyt1w.preprocess_intensity( t1, t1bxt )
-        if bxtstyle == "v3":
+        if bxtstyle =='v2' or bxtstyle =='v3':
+            t1rank = ants.rank_intensity( t1 )
+            t1bxt = antspyt1w.brain_extraction( t1rank, method=bxtstyle, verbose=True )
+        else:
+            t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
+        t1 = antspyt1w.preprocess_intensity( t1, t1bxt, intensity_truncation_quantiles=[1e-6,0.9999] )
+        if bxtstyle =='v3':
             t1 = ants.rank_intensity( t1 )
         t1crop = ants.crop_image( t1, ants.iMath(  t1bxt, "MD", 6 ) )
+        t1dimprod =  np.prod( t1crop.shape )
+        toobig=False
+        if t1dimprod >= 4200000:
+            toobig=True
+            print( t1 )
+        ants.plot( t1crop, nslices=21, ncol=7, axis=2, filename= srfnout + "brain_n4_dnz.png" )
         ants.image_write( t1crop, srfnout + "brain_n4_dnz.nii.gz" )
-        print( "t1crop" )
+        print( "t1crop: " + srfnout + "brain_n4_dnz.nii.gz"  )
         print( t1crop )
         mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
         print("second is SR")
         mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
         mdl = tf.keras.models.load_model( mdlfn )
-        mysr = superiq.super_resolution_segmentation_per_label(
+        if not toobig:
+            mysr = superiq.super_resolution_segmentation_per_label(
                 t1crop, mylr, [2,2,2], mdl, [1,2], dilation_amount=0, probability_images=None,
                 probability_labels=None, max_lab_plus_one=False, verbose=True )
+        else:
+            mylr = antspyt1w.subdivide_hemi_label( mylr )
+            ants.image_write( mylr, '/tmp/temp.nii.gz')
+            print("subdiv SR")
+            mysr = superiq.super_resolution_segmentation_per_label(
+                t1crop, mylr, [2,2,2], mdl, [4,5,6,7], dilation_amount=0, probability_images=None,
+                probability_labels=None, max_lab_plus_one=False, verbose=True )
         t1 = mysr['super_resolution']
-        t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
         srfnout = srfnout + "SR"
+        t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
         ants.image_write( t1, srfnout + ".nii.gz" )
         ants.image_write( t1bxt, srfnout + "brain_extraction.nii.gz" )
         print("begin hier: " + srfnout )
@@ -102,3 +121,4 @@ for bxtstyle in bxtsylelist:
         print("complete: " + srfnout )
     else:
         print("already done: " + srfnout )
+
