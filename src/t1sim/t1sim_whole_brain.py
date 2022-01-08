@@ -8,15 +8,29 @@ import antspyt1w
 import numpy as np
 import pandas as pd
 import re
-istest=False
+import random
+
+import random, string
+
+istest=True
 dtifns = glob.glob( "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/*/*/t1weighted.nii.gz" )
 if istest:
     dtifns = glob.glob( "/Users/stnava/data/anatomicalLabels/Mindboggle101_volumes/Extra-18_volumes/Twins-*/t1weighted.nii.gz" )
+
+spre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated_whole_brain/"
+if istest:
+    spre="/tmp/testit/"
 
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 else:
     fileindex=0
+
+random.seed( fileindex )
+def randword(length):
+   letters = string.ascii_lowercase
+   return ''.join(random.choice(letters) for i in range(length))
+randstring = randword( 8 )
 
 imgfn = dtifns[ fileindex ]
 print( imgfn )
@@ -24,18 +38,16 @@ refimg = ants.image_read( antspyt1w.get_data( "CIT168_T1w_700um_pad", target_ext
 refimg = ants.resample_image( refimg, [0.5,0.5,0.5] )
 refimgseg = ants.image_read( antspyt1w.get_data( "det_atlas_25_pad_LR", target_extension='.nii.gz' ))
 refimgsmall = ants.resample_image( refimg, [2.5,2.5,2.5] )
-segfn = re.sub( "_brain_n4_dnz-SR.nii.gz", "_SRHIERcit168lab.nii.gz", imgfn)
-outipre = re.sub( ".nii.gz", "", imgfn)
-outspre = re.sub( ".nii.gz", "", segfn)
-ifnbase = re.sub( ".nii.gz", "", os.path.basename( imgfn ) )
-sfnbase = re.sub( ".nii.gz", "",  os.path.basename( segfn ) )
-spre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated_whole_brain/"
+ifnbase = randstring + "_img"
+sfnbase = randstring + "_seg"
+pfnbase = randstring + "_pri"
 outipre = spre + ifnbase
 outspre = spre + sfnbase
-outppre = re.sub( "T1wHierarchical_SRHIERcit168lab", "T1wHierarchical_cit168priors", outspre )
+outppre = spre + pfnbase
 print(outipre)
 print(outspre)
 print(outppre)
+
 img = ants.image_read( imgfn )
 imgbxt = antspyt1w.brain_extraction( img, method='v1' )
 img = antspyt1w.preprocess_intensity( img, imgbxt )
@@ -53,7 +65,7 @@ ilist = list()
 ilist.append( [refimg] )
 nsim = 64
 if istest:
-    nsim=1
+    nsim=4
 uu = antspynet.randomly_transform_image_data( refimg, ilist,
     number_of_simulations = nsim,
     transform_type='scaleShear', sd_affine=0.05 )
@@ -69,7 +81,7 @@ for k in range( nsim ):
     simtx = uu['simulated_transforms'][k]
     simtxinv = ants.invert_ants_transform( simtx )
     cmptx = ants.compose_ants_transforms( [fwdaff, simtx] ) # good
-    subjectsim = ants.apply_ants_transform_to_image( cmptx, img, refimg, interpolation='nearestneighbor' )
+    subjectsim = ants.apply_ants_transform_to_image( cmptx, img, refimg, interpolation='linear' )
     # now generate the mapping for the template segmentation to the sim subject
     cmptxseg = ants.compose_ants_transforms( [simtx,deftxigood] ) # good
     segsim = ants.apply_ants_transform_to_image( cmptxseg, refimgseg, refimg, interpolation='nearestneighbor' )
@@ -79,20 +91,16 @@ for k in range( nsim ):
     bias_field = antspynet.simulate_bias_field( subjectsim, number_of_points=10,
         sd_bias_field=0.10, number_of_fitting_levels=4, mesh_size=1)
     subjectsim = subjectsim * (bias_field + 1)
+    subjectsim = ants.rank_intensity( subjectsim )
     centroids = ants.label_image_centroids( segsim, segsim )
     mydf = pd.DataFrame({"Label":centroids['labels'],
         "x":centroids['vertices'][:,0],
         "y":centroids['vertices'][:,1],
         "z":centroids['vertices'][:,2]} )
-    if istest:
-        ants.plot( subjectsim, segsim, crop=True, axis=2 )
-        ants.plot( subjectsim, segsim, crop=True, axis=1 )
-        ants.plot( subjectsim, segsim, crop=True, axis=0 )
-    if not istest:
-        mydf.to_csv( outspre + "_sim_" + str(k) + "points.csv" )
-        ants.image_write( segsim, outspre + "_sim_" + str(k) + ".nii.gz"  )
-        ants.image_write( subjectsim, outipre + "_sim_" + str(k) + ".nii.gz"  )
-        ants.image_write( priorsim, outppre + "_sim_" + str(k) + ".nii.gz"  )
+    mydf.to_csv( outspre + "_sim_" + str(k) + "points.csv" )
+    ants.image_write( segsim, outspre + "_sim_" + str(k) + ".nii.gz"  )
+    ants.image_write( subjectsim, outipre + "_sim_" + str(k) + ".nii.gz"  )
+    ants.image_write( priorsim, outppre + "_sim_" + str(k) + ".nii.gz"  )
     print( outspre + "_sim_" + str(k) + ".nii.gz" )
     print( outipre + "_sim_" + str(k) + ".nii.gz"  )
     print( outppre + "_sim_" + str(k) + ".nii.gz"  )
