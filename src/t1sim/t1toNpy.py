@@ -38,7 +38,7 @@ def batch_generator(
     segmentation_filenames,
     image_size, 
     group_labels_in,
-    batch_size=32,
+    batch_size=64,
     ):
     X = np.zeros( (batch_size, *(image_size), 1) )
     Xcc = np.zeros( (batch_size, *(image_size), 3) )
@@ -51,7 +51,8 @@ def batch_generator(
     print("BeginBatch")
     while batch_count < batch_size:
         i = random.sample(list(range(len(image_filenames))), 1)[0]
-        t1 = ants.image_read(image_filenames[i]).iMath("Normalize")
+        t1 = ants.image_read(image_filenames[i])
+        t1 = ants.rank_intensity( t1 )
         mycc = coordinate_images( t1 * 0 + 1 )
         zz=pd.read_csv( pt_fns[i] )
         mypr = ants.image_read( pr_fns[i] )
@@ -80,10 +81,9 @@ exfn = "Mindboggle_Afterthought-1_T1wHierarchical_brain_n4_dnz-SR_sim_11.nii.gz"
 eximg = ants.image_read( data_directory + exfn )
 group_1_labels = [0,1,2,5,6,17,18,21,22]
 group_2_labels = [0,7,8,9,23,24,25,33,34]
-group_labels = group_1_labels
+group_labels = group_2_labels
 
 image_size = [160,160,112]
-
 
 print("Loading brain data.")
 
@@ -104,7 +104,7 @@ def randword(length):
    letters = string.ascii_lowercase
    return ''.join(random.choice(letters) for i in range(length))
 randstring = randword( 8 )
-outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpy/MB_" + randstring
+outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpySegMBRank/MB_" + randstring
 print( outpre )
 
 seg = ants.image_read( seg_fns[0] )

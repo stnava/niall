@@ -8,7 +8,7 @@ import antspyt1w
 import numpy as np
 import pandas as pd
 import re
-istest=True
+istest=False
 dtifns = glob.glob( "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/*/*/t1weighted.nii.gz" )
 if istest:
     dtifns = glob.glob( "/Users/stnava/data/anatomicalLabels/Mindboggle101_volumes/Extra-18_volumes/Twins-*/t1weighted.nii.gz" )
