@@ -27,7 +27,7 @@ if istest:
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 else:
-    fileindex=77
+    fileindex=50
 
 random.seed( fileindex )
 def randword(length):
@@ -38,6 +38,7 @@ randstring = randword( 8 )
 imgfn = dtifns[ fileindex ]
 print( imgfn )
 refimg = ants.image_read( antspyt1w.get_data( "CIT168_T1w_700um_pad", target_extension='.nii.gz' ))
+refimg = ants.rank_intensity( refimg )
 refimg = ants.resample_image( refimg, [0.5,0.5,0.5] )
 refimgseg = ants.image_read( antspyt1w.get_data( "det_atlas_25_pad_LR", target_extension='.nii.gz' ))
 refimgsmall = ants.resample_image( refimg, [2.5,2.5,2.5] )
@@ -54,20 +55,22 @@ print(outppre)
 img = ants.image_read( imgfn )
 imgbxt = antspyt1w.brain_extraction( img, method='v1' )
 img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
-reg = ants.registration( refimgsmall, img, 'SyN',
+imgr = ants.rank_intensity( img )
+reg = ants.registration( refimgsmall, imgr, 'SyN',
     reg_iterations=(40, 40, 20, 0, 0),
     verbose=False )
 if istest:
     reggd = reg
 else:
-    reggd = ants.registration( refimg, img, 'SyN',
+    reggd = ants.registration( refimg, imgr, 'SyN',
         reg_iterations=(200, 200, 200, 10, 0),
-        syn_metric='CC', syn_sampling=2,  verbose=False )
-seg2sub = ants.apply_transforms( img, refimgseg, reg['invtransforms'], interpolator='nearestNeighbor' )
-
+        syn_metric='CC', syn_sampling=2,  verbose=True )
+#
+# seg2sub = ants.apply_transforms( img, refimgseg, reg['invtransforms'], interpolator='nearestNeighbor' )
+#
 # we build maps s.t. we have a composed tx that takes the template seg to the subject via:
 # sim-map => inv1 => inv2
-
+#
 ilist = list()
 ilist.append( [refimg] )
 nsim = 64
@@ -97,9 +100,9 @@ for k in range( nsim ):
     # now generate the mapping for the template segmentation to the sim subject
     cmptxseg = ants.compose_ants_transforms( [deftxigood,simtx] ) # good
     segsim = ants.apply_ants_transform_to_image( cmptxseg, refimgseg, refimg, interpolation='nearestneighbor' )
-    # segsimB = ants.apply_transforms( img, refimgseg,reggd['invtransforms'], interpolator='genericLabel' )
-    # segsimB = ants.apply_ants_transform_to_image( cmptx, segsimB, refimg, interpolation='nearestneighbor' )
-    # print( ants.label_overlap_measures( segsim, segsimB ) )
+    segsimB = ants.apply_transforms( img, refimgseg,reggd['invtransforms'], interpolator='genericLabel' )
+    segsimB = ants.apply_ants_transform_to_image( cmptx, segsimB, refimg, interpolation='nearestneighbor' )
+    print( ants.label_overlap_measures( segsim, segsimB ) )
     # segsim = ants.apply_ants_transform_to_image( cmptxseg, refimgseg, refimg, interpolation='nearestneighbor' )
     # now generate the mapping for the template segmentation to the sim subject
     cmptxprior = ants.compose_ants_transforms( [deftxi,simtx] ) # good
