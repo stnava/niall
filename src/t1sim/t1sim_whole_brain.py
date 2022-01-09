@@ -41,7 +41,7 @@ refimg = ants.image_read( antspyt1w.get_data( "CIT168_T1w_700um_pad", target_ext
 refimg = ants.rank_intensity( refimg )
 refimg = ants.resample_image( refimg, [0.5,0.5,0.5] )
 refimgseg = ants.image_read( antspyt1w.get_data( "det_atlas_25_pad_LR", target_extension='.nii.gz' ))
-refimgsmall = ants.resample_image( refimg, [2.5,2.5,2.5] )
+refimgsmall = ants.resample_image( refimg, [2.0,2.0,2.0] )
 ifnbase = randstring + "_img"
 sfnbase = randstring + "_seg"
 pfnbase = randstring + "_pri"
@@ -57,6 +57,9 @@ imgbxt = antspyt1w.brain_extraction( img, method='v1' )
 img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
 imgr = ants.rank_intensity( img )
 reg = ants.registration( refimgsmall, imgr, 'SyN',
+    aff_iterations=(2000, 2100, 1200, 0, 0),
+    aff_shrink_factors  =(8, 6, 4, 2, 1),
+    aff_smoothing_sigmas=(4, 3, 2, 1, 0),
     reg_iterations=(40, 40, 20, 0, 0),
     verbose=False )
 if istest:
