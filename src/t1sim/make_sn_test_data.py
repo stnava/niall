@@ -136,7 +136,4 @@ if False:
         ants.plot(t0,t1,axis=2)
 
 np.save( outpre + "_Ximages.npy", generator[0] )
-np.save( outpre + "_Xcc.npy", generator[1] )
-np.save( outpre + "_Y.npy", generator[2] )
-np.save( outpre + "_Ypts.npy", generator[3] )
-np.save( outpre + "_Xprior.npy", generator[4])
+np.save( outpre + "_Y.npy", generator[1] )
