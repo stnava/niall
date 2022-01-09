@@ -56,16 +56,13 @@ img = ants.image_read( imgfn )
 imgbxt = antspyt1w.brain_extraction( img, method='v1' )
 img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
 imgr = ants.rank_intensity( img )
-reg = ants.registration( refimgsmall, imgr, 'SyN',
-    verbose=False )
+reg = ants.registration( refimgsmall, imgr, 'SyN', verbose=False )
 if istest:
     reggd = reg
 else:
     reggd = ants.registration( refimg, imgr, 'SyN',
-        reg_iterations=(200, 200, 200, 10, 0),
+        reg_iterations=(200, 200, 200, 25, 5),
         syn_metric='CC', syn_sampling=2,  verbose=True )
-#
-# seg2sub = ants.apply_transforms( img, refimgseg, reg['invtransforms'], interpolator='nearestNeighbor' )
 #
 # we build maps s.t. we have a composed tx that takes the template seg to the subject via:
 # sim-map => inv1 => inv2
