@@ -68,7 +68,8 @@ def preprocess( imgfn ):
 
 data_directory = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated_whole_brain/"
 data_directory = "/Users/stnava/Downloads/temp/traveling_subjects/SRPBTravel/"
-# data_directory = "/tmp/simulated_whole_brain/"
+data_directory = "/mnt/cluster/data/SRPBS_multidisorder_MRI/traveling_subjects_repro_study/"
+srchstring = "sub-*/T1wH/sub-*v1SR.nii.gz"
 exfn = glob.glob( data_directory + "sub-*/anat/*_T1w.nii.gz" )[0]
 eximg = ants.image_read( exfn )
 group_labels_target = [0,7,8,9,23,24,25,33,34]
@@ -76,12 +77,13 @@ pt_labels = [7,9,23,25]
 
 crop_size = [96,96,64]
 image_size = list(eximg.shape)
+print( eximg )
 
 # temp=preprocess(exfn)
 
 print("Loading brain data.")
 
-t1_fns = glob.glob( data_directory + "sub-*/anat/*_T1w.nii.gz" )
+t1_fns = glob.glob( data_directory + srchstring )
 print("Total training image files: ", len(t1_fns))
 
 # convert to numpy files
@@ -93,10 +95,10 @@ def batch_generator(
     X = np.zeros( (batch_size, *(image_size), 1) )
     Y = np.zeros( (batch_size, *(image_size) ) )
     batch_count = 0
-    print("BeginBatch")
     lo=0
     if len(image_filenames) > 20:
         lo=20
+    print("BeginBatch " + str(lo) )
     while batch_count < batch_size:
         i = random.sample(list(range(lo,len(image_filenames))), 1)[0]
         print( str(i) + " " + image_filenames[i] )
