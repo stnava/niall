@@ -1,4 +1,7 @@
 import os
+os.environ["ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS"] = "96"
+os.environ["TF_NUM_INTEROP_THREADS"] = "96"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "96"
 import glob
 import numpy as np
 import sys
@@ -70,7 +73,7 @@ data_directory = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simul
 data_directory = "/Users/stnava/Downloads/temp/traveling_subjects/SRPBTravel/"
 data_directory = "/mnt/cluster/data/SRPBS_multidisorder_MRI/traveling_subjects_repro_study/"
 srchstring = "sub-*/T1wH/sub-*v1SR.nii.gz"
-exfn = glob.glob( data_directory + "sub-*/anat/*_T1w.nii.gz" )[0]
+exfn = glob.glob( data_directory + srchstring)[0]
 eximg = ants.image_read( exfn )
 group_labels_target = [0,7,8,9,23,24,25,33,34]
 pt_labels = [7,9,23,25]
