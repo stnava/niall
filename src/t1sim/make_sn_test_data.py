@@ -51,7 +51,9 @@ def preprocess( imgfn ):
     imgbxt = antspyt1w.brain_extraction( img, method='v1' )
     img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
     imgr = ants.rank_intensity( img )
-    reg = ants.registration( refimgsmall, imgr, 'SyN', verbose=False )
+    reg = ants.registration( refimg, imgr, 'SyN',
+        reg_iterations = [200,200,100,20,5],
+        verbose=False )
     imgraff = ants.apply_transforms( refimg, imgr, reg['fwdtransforms'][1], interpolator='linear' )
     imgseg = ants.apply_transforms( refimg, refimgseg, reg['invtransforms'][1], interpolator='nearestNeighbor' )
     binseg = ants.mask_image( imgseg, imgseg, pt_labels, binarize=True )
@@ -75,84 +77,57 @@ pt_labels = [7,9,23,25]
 crop_size = [96,96,64]
 image_size = list(eximg.shape)
 
-temp=preprocess(exfn)
-
-derka
+# temp=preprocess(exfn)
 
 print("Loading brain data.")
 
 t1_fns = glob.glob( data_directory + "sub-*/anat/*_T1w.nii.gz" )
 print("Total training image files: ", len(t1_fns))
 
-
-# convert it to numpy files
+# convert to numpy files
 def batch_generator(
     image_filenames,
-    segmentation_filenames,
     image_size,
-    group_labels_in,
     batch_size=64,
     ):
     X = np.zeros( (batch_size, *(image_size), 1) )
-    Xcc = np.zeros( (batch_size, *(image_size), 3) )
     Y = np.zeros( (batch_size, *(image_size) ) )
-    Ypr = np.zeros( (batch_size, *(image_size) ) )
-    zz=pd.read_csv( pt_fns[0] )
-    npts = zz.shape[0]
-    Ypts = np.zeros( ( batch_size,  npts, 3 ) )
     batch_count = 0
     print("BeginBatch")
+    lo=0
+    if len(image_filenames) > 20:
+        lo=20
     while batch_count < batch_size:
-        i = random.sample(20,list(range(len(image_filenames))), 1)[0]
-        print( i + " " + image_filenames[i] )
-        t1 = ants.image_read(image_filenames[i])
-        t1=special_crop( t1, com, image_size )
-        seg=special_crop( seg, com, image_size )
-        mypr=special_crop( mypr, com, image_size )
-        mycc = coordinate_images( t1 * 0 + 1 )
-        X[batch_count,:,:,:,0] = t1.numpy()
-        Xcc[batch_count,:,:,:,0] = mycc[0].numpy()
-        Xcc[batch_count,:,:,:,1] = mycc[1].numpy()
-        Xcc[batch_count,:,:,:,2] = mycc[2].numpy()
-        Y[batch_count,:,:,:] = seg.numpy()
-        Ypr[batch_count,:,:,:] = mypr.numpy()
-        Ypts[batch_count,:,0]=zz['x']
-        Ypts[batch_count,:,1]=zz['y']
-        Ypts[batch_count,:,2]=zz['z']
+        i = random.sample(list(range(lo,len(image_filenames))), 1)[0]
+        print( str(i) + " " + image_filenames[i] )
+        locdata = preprocess( image_filenames[i] )
+        X[batch_count,:,:,:,0] = locdata['imgc'].numpy()
+        Y[batch_count,:,:,:] = locdata['segc'].numpy()
         batch_count = batch_count + 1
         if batch_count >= batch_size:
                 break
 
-    return X, Xcc, Y, Ypts, Ypr
-
+    return X, Y
 
 import random, string
 def randword(length):
    letters = string.ascii_lowercase
    return ''.join(random.choice(letters) for i in range(length))
 randstring = randword( 8 )
-outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpySNSegRank/MBSN_" + randstring
+outpre = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/numpySNSegRankTest/TRT_" + randstring
 print( outpre )
 
-seg = ants.image_read( seg_fns[0] )
-###
-#
-# Set up the training generator
-#
-
-batch_size = 64
+batch_size = 32
 generator = batch_generator( t1_fns,
-        seg_fns,
         image_size=crop_size,
-        batch_size = batch_size,
-        group_labels_in=group_labels_target )
+        batch_size = batch_size )
 
 if False:
     for k in range(batch_size):
         t0= ants.from_numpy( generator[0][k,:,:,:,0] )
-        t1= ants.from_numpy( generator[2][k,:,:,:] )
-        t0=ants.copy_image_info( eximg,t0)
-        t1=ants.copy_image_info( eximg,t1)
+        t1= ants.from_numpy( generator[1][k,:,:,:] )
+        t0=ants.copy_image_info( refimg,t0)
+        t1=ants.copy_image_info( refimg,t1)
         ants.plot(t0,t1,axis=2)
 
 np.save( outpre + "_Ximages.npy", generator[0] )
