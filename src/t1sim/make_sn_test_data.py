@@ -3,9 +3,11 @@ import glob
 import numpy as np
 import sys
 import random
-random.seed( 88 )
+rseed = 88
+random.seed( rseed )
 import ants
 import antspynet
+import antspyt1w
 import re
 import pandas as pd
 import tensorflow as tf
@@ -36,19 +38,6 @@ def special_crop( x, pt, domainer ):
         mim = ants.copy_image_info(loi,mim)
         return ants.resample_image_to_target( x, mim )
 
-def coordinate_images( mask ):
-  idim = mask.dimension
-  myr = list()
-  for k in range(idim):
-      myr.append(0)
-  temp = ants.get_neighborhood_in_mask( mask, mask, myr,
-    boundary_condition = "image", spatial_info = True,
-    physical_coordinates = True, get_gradient = False)
-  ilist = []
-  for i in range(idim):
-      ilist.append( ants.make_image( mask, temp['indices'][:,i] ) )
-  return ilist
-
 refimg = ants.image_read( antspyt1w.get_data( "CIT168_T1w_700um_pad", target_extension='.nii.gz' ))
 refimg = ants.rank_intensity( refimg )
 refimg = ants.resample_image( refimg, [0.5,0.5,0.5] )
@@ -56,11 +45,44 @@ refimgseg = ants.image_read( antspyt1w.get_data( "det_atlas_25_pad_LR", target_e
 refimgsmall = ants.resample_image( refimg, [2.0,2.0,2.0] )
 
 # generate the data
-img = ants.image_read( imgfn )
-imgbxt = antspyt1w.brain_extraction( img, method='v1' )
-img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
-imgr = ants.rank_intensity( img )
-reg = ants.registration( refimgsmall, imgr, 'SyN', verbose=False )
+
+def preprocess( imgfn ):
+    img = ants.image_read( imgfn )
+    imgbxt = antspyt1w.brain_extraction( img, method='v1' )
+    img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
+    imgr = ants.rank_intensity( img )
+    reg = ants.registration( refimgsmall, imgr, 'SyN', verbose=False )
+    imgraff = ants.apply_transforms( refimg, imgr, reg['fwdtransforms'][1], interpolator='linear' )
+    imgseg = ants.apply_transforms( refimg, refimgseg, reg['invtransforms'][1], interpolator='nearestNeighbor' )
+    binseg = ants.mask_image( imgseg, imgseg, pt_labels, binarize=True )
+    imgseg = ants.mask_image( imgseg, imgseg, group_labels_target )
+    com = ants.get_center_of_mass( binseg )
+    return {
+        "img": imgraff,
+        "seg": imgseg,
+        "imgc": special_crop( imgraff, com, crop_size ),
+        "segc": special_crop( imgseg, com, crop_size )
+        }
+
+data_directory = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated_whole_brain/"
+data_directory = "/Users/stnava/Downloads/temp/traveling_subjects/SRPBTravel/"
+# data_directory = "/tmp/simulated_whole_brain/"
+exfn = glob.glob( data_directory + "sub-*/anat/*_T1w.nii.gz" )[0]
+eximg = ants.image_read( exfn )
+group_labels_target = [0,7,8,9,23,24,25,33,34]
+pt_labels = [7,9,23,25]
+
+crop_size = [96,96,64]
+image_size = list(eximg.shape)
+
+temp=preprocess(exfn)
+
+derka
+
+print("Loading brain data.")
+
+t1_fns = glob.glob( data_directory + "sub-*/anat/*_T1w.nii.gz" )
+print("Total training image files: ", len(t1_fns))
 
 
 # convert it to numpy files
@@ -81,14 +103,9 @@ def batch_generator(
     batch_count = 0
     print("BeginBatch")
     while batch_count < batch_size:
-        i = random.sample(list(range(len(image_filenames))), 1)[0]
+        i = random.sample(20,list(range(len(image_filenames))), 1)[0]
+        print( i + " " + image_filenames[i] )
         t1 = ants.image_read(image_filenames[i])
-        zz=pd.read_csv( pt_fns[i] )
-        mypr = ants.image_read( pr_fns[i] )
-        seg = ants.image_read( segmentation_filenames[i] )
-        seg = ants.mask_image( seg, seg, group_labels_in, binarize=False)
-        comMask = ants.mask_image( mypr, mypr, pt_labels, binarize=True )
-        com = ants.get_center_of_mass( comMask )
         t1=special_crop( t1, com, image_size )
         seg=special_crop( seg, com, image_size )
         mypr=special_crop( mypr, com, image_size )
@@ -108,29 +125,6 @@ def batch_generator(
 
     return X, Xcc, Y, Ypts, Ypr
 
-data_directory = "/mnt/cluster/data/anatomicalLabels/Mindboggle101_volumes/simulated_whole_brain/"
-# data_directory = "/tmp/simulated_whole_brain/"
-exfn = glob.glob( data_directory + "*img*sim_0.nii.gz" )[0]
-eximg = ants.image_read( exfn )
-group_labels_target = [0,7,8,9,23,24,25,33,34]
-pt_labels = [7,9,23,25]
-
-crop_size = [96,96,64]
-image_size = list(eximg.shape)
-
-print("Loading brain data.")
-
-t1_fns = glob.glob( data_directory + "*img*_sim_*.nii.gz" )
-seg_fns = t1_fns.copy()
-for k in range(len(t1_fns)):
-    seg_fns[k] = re.sub( "img", "seg", seg_fns[k] )
-pt_fns = t1_fns.copy()
-pr_fns = t1_fns.copy()
-for k in range(len(t1_fns)):
-    pr_fns[k] = re.sub( "img", "pri", pr_fns[k] )
-    pt_fns[k] = re.sub( ".nii.gz", "points.csv", seg_fns[k] )
-
-print("Total training image files: ", len(t1_fns))
 
 import random, string
 def randword(length):
