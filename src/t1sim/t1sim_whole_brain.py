@@ -103,10 +103,10 @@ for k in range( nsim ):
     # now generate the mapping for the template segmentation to the sim subject
     cmptxseg = ants.compose_ants_transforms( [deftxigood,simtx] ) # good
     segsim = ants.apply_ants_transform_to_image( cmptxseg, refimgseg, refimg, interpolation='nearestneighbor' )
-    segsimB = ants.apply_transforms( img, refimgseg,reggd['invtransforms'], interpolator='genericLabel' )
-    segsimB = ants.apply_ants_transform_to_image( cmptx, segsimB, refimg, interpolation='nearestneighbor' )
-    print( ants.label_overlap_measures( segsim, segsimB ) )
-    # segsim = ants.apply_ants_transform_to_image( cmptxseg, refimgseg, refimg, interpolation='nearestneighbor' )
+    if istest:
+        segsimB = ants.apply_transforms( img, refimgseg,reggd['invtransforms'], interpolator='genericLabel' )
+        segsimB = ants.apply_ants_transform_to_image( cmptx, segsimB, refimg, interpolation='nearestneighbor' )
+        print( ants.label_overlap_measures( segsim, segsimB ) )
     # now generate the mapping for the template segmentation to the sim subject
     cmptxprior = ants.compose_ants_transforms( [deftxi,simtx] ) # good
     priorsim = ants.apply_ants_transform_to_image( cmptxprior, refimgseg, refimg, interpolation='nearestneighbor' )
