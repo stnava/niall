@@ -57,10 +57,6 @@ imgbxt = antspyt1w.brain_extraction( img, method='v1' )
 img = antspyt1w.preprocess_intensity( img, imgbxt, intensity_truncation_quantiles=[0.000001, 0.999999 ] )
 imgr = ants.rank_intensity( img )
 reg = ants.registration( refimgsmall, imgr, 'SyN',
-    aff_iterations=(2000, 2100, 1200, 0, 0),
-    aff_shrink_factors  =(8, 6, 4, 2, 1),
-    aff_smoothing_sigmas=(4, 3, 2, 1, 0),
-    reg_iterations=(40, 40, 20, 0, 0),
     verbose=False )
 if istest:
     reggd = reg
