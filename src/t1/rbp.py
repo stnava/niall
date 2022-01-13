@@ -3,7 +3,7 @@ from os.path import exists
 import glob
 import matplotlib.pyplot as plt
 from PIL import Image
-
+import pandas as pd
 from random_word import RandomWords
 r = RandomWords()
 
@@ -56,15 +56,16 @@ import numpy as np
 t1 = ants.image_read( t1fn ).iMath("TruncateIntensity",0.05, 0.99).iMath("Normalize")
 lomask = ants.get_mask( t1, low_thresh=t1.mean()*0.25 ) #  threshold_image( t1, 0.05, np.math.inf )
 t1 = ants.rank_intensity( t1, mask=lomask, get_mask=False ) # t1 = t1 * lomask
-ants.plot( t1, axis=2, nslices=21, ncol=7, filename=pngfn) 
+ants.plot( t1, axis=2, nslices=21, ncol=7, filename=pngfn, crop=True )
 bfn = antspynet.get_antsxnet_data( "S_template3" )
 templateb = ants.image_read( bfn ).iMath("Normalize")
 templatesmall = ants.resample_image( templateb, (2,2,2), use_voxels=False )
-rbp = antspyt1w.random_basis_projection( t1, templatesmall, type_of_transform='Translation' )
+rbp = antspyt1w.random_basis_projection( t1, templatesmall, type_of_transform='Translation',
+        refbases=pd.read_csv( "~/.antspyt1w/refbasis_head.csv") )
 rbp.to_csv( outfn )
 
 looper=float(rbp['loop_outlier_probability'])
-ttl="LOOP: " + "{:0.4f}".format(looper) + " MD: " + "{:0.4f}".format(float(rbp['mhdist'])) 
+ttl="LOOP: " + "{:0.4f}".format(looper) + " MD: " + "{:0.4f}".format(float(rbp['mhdist']))
 img = Image.open( pngfn ).copy()
 plt.figure(dpi=300)
 plt.imshow(img)
@@ -80,11 +81,12 @@ print(outfn +  " DONE!" )
 t1 = ants.image_read( t1fn ).iMath("TruncateIntensity",0.001, 0.999).iMath("Normalize")
 lomask = antspynet.brain_extraction( t1, "t1" )
 t1 = ants.rank_intensity( t1 * lomask, mask=lomask, get_mask=False ) # t1 = t1 * lomask
-ants.plot( t1, axis=2, nslices=21, ncol=7, filename=pngfnb)
+ants.plot( t1, axis=2, nslices=21, ncol=7, filename=pngfnb, crop=True )
 templatemask = antspynet.brain_extraction( templateb, "t1" )
 templateb = ants.rank_intensity( templateb * templatemask, mask=templatemask, get_mask=False )
 templatesmall = ants.resample_image( templateb, (2,2,2), use_voxels=False )
-rbp = antspyt1w.random_basis_projection( t1, templatesmall, type_of_transform='Rigid' )
+rbp = antspyt1w.random_basis_projection( t1, templatesmall, type_of_transform='Rigid',
+        refbases=pd.read_csv( "~/.antspyt1w/refbasis_brain.csv") )
 rbp.to_csv( outfnb )
 
 looper=float(rbp['loop_outlier_probability'])
@@ -100,5 +102,3 @@ plt.close()
 
 
 print(outfnb +  " DONE!" )
-
-
