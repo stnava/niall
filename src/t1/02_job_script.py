@@ -4,8 +4,9 @@ import glob
 
 rootdir = "/mnt/cluster/data/SRPBS_multidisorder_MRI/traveling_subjects/SRPBTravel/"
 t1fns = glob.glob( rootdir + "*/anat/*.nii.gz" )
+t1fns.sort()
 import sys
-fileindex = 0
+fileindex = 39
 if len( sys.argv ) > 1:
     fileindex = int(sys.argv[1])
 t1fn = t1fns[ fileindex ]
@@ -38,38 +39,58 @@ templatea = ants.image_read( tfn )
 templatea = ( templatea * antspynet.brain_extraction( templatea, 't1' ) ).iMath( "Normalize" )
 templatealr = ants.image_read( tlrfn )
 bxtsylelist = ['v0','v1','v2','v3']
+bxtsylelist = ['v1','v3']
 for bxtstyle in bxtsylelist:
     srfnout = newprefix + "_" + bxtstyle
-    if not exists( srfnout + "SR_mergewide.csv" ):
+    print( srfnout + "SR_mergewide.csv" )
+    t1 = ants.image_read( t1fn ).iMath("Normalize")
+    bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
+    clusoe = antspyt1w.resnet_grader( t1 * bxt )
+    outdf.to_csv( srfnout + "inspection.csv" )
+    if not exists( srfnout + "SR_mergewide.csv" ) or not exists( srfnout + "OR_mergewide.csv" ):
         print("begin: " + srfnout  )
-        t1 = ants.image_read( t1fn )
+        t1 = ants.image_read( t1fn ).iMath("Normalize")
         t1bxt = antspyt1w.brain_extraction( t1, method=bxtstyle, verbose=True )
         t1 = antspyt1w.preprocess_intensity( t1, t1bxt )
         if bxtstyle == "v3":
             t1 = ants.rank_intensity( t1 )
         t1crop = ants.crop_image( t1, ants.iMath(  t1bxt, "MD", 6 ) )
+        t1bxt = ants.crop_image( t1bxt.clone(), ants.iMath(  t1bxt, "MD", 6 ) )
         ants.image_write( t1crop, srfnout + "brain_n4_dnz.nii.gz" )
         print( "t1crop" )
         print( t1crop )
-        mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
-        print("second is SR")
-        mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
-        mdl = tf.keras.models.load_model( mdlfn )
-        mysr = superiq.super_resolution_segmentation_per_label(
-                t1crop, mylr, [2,2,2], mdl, [1,2], dilation_amount=0, probability_images=None,
+        if bxtstyle == 'v1' and not exists( srfnout + "OR_mergewide.csv" ) :
+            orfnout = srfnout + "OR"
+            print("begin hier: " + orfnout )
+            t1h = antspyt1w.hierarchical( t1crop, output_prefix=orfnout, imgbxt=t1bxt, cit168=True )
+            antspyt1w.write_hierarchical( t1h, output_prefix=orfnout)
+            uid = os.path.basename(orfnout)
+            uid = re.sub(".nii.gz","",uid)
+            outdf = antspyt1w.merge_hierarchical_csvs_to_wide_format( t1h['dataframes'], identifier=uid )
+            outdf.to_csv( orfnout + "_mergewide.csv" )
+            print("complete: " + orfnout )
+        if not exists( srfnout + "SR_mergewide.csv" ) :
+            mylr = antspyt1w.label_hemispheres( t1crop, templatea, templatealr )
+            mylr = antspyt1w.subdivide_hemi_label( mylr )
+            print("second is SR")
+            mdlfn = "/home/ubuntu/models/SEGSR_32_ANINN222_3.h5"
+            mdl = tf.keras.models.load_model( mdlfn )
+            mysr = superiq.super_resolution_segmentation_per_label(
+                t1crop, mylr, [2,2,2], mdl, [4,5,6,7], dilation_amount=0, probability_images=None,
                 probability_labels=None, max_lab_plus_one=False, verbose=True )
-        t1 = mysr['super_resolution']
-        t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
-        srfnout = srfnout + "SR"
-        ants.image_write( t1, srfnout + ".nii.gz" )
-        ants.image_write( t1bxt, srfnout + "brain_extraction.nii.gz" )
-        print("begin hier: " + srfnout )
-        t1h = antspyt1w.hierarchical( t1, output_prefix=srfnout, imgbxt=t1bxt, cit168=True )
-        antspyt1w.write_hierarchical( t1h, output_prefix=srfnout )
-        uid = os.path.basename(srfnout)
-        uid = re.sub(".nii.gz","",uid)
-        outdf = antspyt1w.merge_hierarchical_csvs_to_wide_format( t1h['dataframes'], identifier=uid )
-        outdf.to_csv( srfnout + "_mergewide.csv" )
-        print("complete: " + srfnout )
+            t1 = mysr['super_resolution']
+            t1bxt = ants.resample_image_to_target( t1bxt, t1, interp_type='nearestNeighbor' )
+            srfnout = srfnout + "SR"
+            ants.image_write( t1, srfnout + ".nii.gz" )
+            ants.image_write( t1bxt, srfnout + "brain_extraction.nii.gz" )
+            print("begin hier: " + srfnout )
+            t1h = antspyt1w.hierarchical( t1, output_prefix=srfnout, imgbxt=t1bxt, cit168=True )
+            antspyt1w.write_hierarchical( t1h, output_prefix=srfnout )
+            uid = os.path.basename(srfnout)
+            uid = re.sub(".nii.gz","",uid)
+            outdf = antspyt1w.merge_hierarchical_csvs_to_wide_format( t1h['dataframes'], identifier=uid )
+            outdf.to_csv( srfnout + "_mergewide.csv" )
+            print("complete: " + srfnout )
     else:
-        print("already done: " + srfnout )
+        print("already done: " + srfnout + " andORTOO" )
+
