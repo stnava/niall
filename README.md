@@ -102,8 +102,8 @@ python3 -m pip uninstall antspymm
 python3 -m pip uninstall antspynet
 python3 -m pip uninstall siq
 
+# python3 -m pip install antspyx --user
 python3 -m pip install dipy --user
-python3 -m pip install antspyx --user
 python3 -m pip install antspyt1w --user
 python3 -m pip install antspymm --user
 python3 -m pip install antspynet --user
