@@ -95,11 +95,19 @@ python3 -m pip install tensorflow --user
 python3 -m pip install tensorflow_probability --user
 python3 -m pip install keras --user
 
+# python3 -m pip uninstall antspyx # no 3.6 pip wheel forces compilation
+python3 -m pip uninstall dipy
+python3 -m pip uninstall antspyt1w
+python3 -m pip uninstall antspymm
+python3 -m pip uninstall antspynet
+python3 -m pip uninstall siq
+
 python3 -m pip install dipy --user
 python3 -m pip install antspyx --user
 python3 -m pip install antspyt1w --user
 python3 -m pip install antspymm --user
 python3 -m pip install antspynet --user
+python3 -m pip install siq --user
 ```
 
 open python on the head node and do:
@@ -108,8 +116,8 @@ open python on the head node and do:
 import ants
 import antspyt1w
 import antspymm
-antspyt1w.get_data()
-antspymm.get_data()
+antspyt1w.get_data(force_download=True)
+antspymm.get_data(force_download=True)
 ```
 
 then you should be ready to run tasks in parallel.  
